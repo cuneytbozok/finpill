@@ -215,7 +215,7 @@ Select **00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and i
 - Worktree: `/Users/cuneytbozok/.codex/worktrees/finpill-00-02/Finpill`.
 - Branch: `codex/00.02-repository-foundation`.
 - Implementation commit: `c3963da`; subsequent evidence-only commits retain the same task branch.
-- PR: opened from `codex/00.02-repository-foundation` after verification; consult this task's attached PR for its URL. No merge is claimed.
+- PR: [#1 — Repository conventions and pinned toolchain](https://github.com/cuneytbozok/finpill/pull/1), opened and attached to the Codex task. No merge is claimed.
 - Scope: Git/GitHub connection, toolchain pins, ignore/editor rules, root lockfile and contribution/setup documentation. No application scaffold, database migration, service provisioning or blueprint change.
 
 ### Deliverables and decisions
