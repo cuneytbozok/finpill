@@ -1,8 +1,10 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and ignore rules.  
-**State:** in_review — bootstrap implementation verified; fresh-clone check and PR review remain.  
+**Current task:** 00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and ignore rules.
+
+**State:** in_review — bootstrap acceptance checks passed; PR review and merge remain.
+
 **Application implementation:** Not started.  
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
 **Last updated:** 2026-09-21.
@@ -212,7 +214,8 @@ Select **00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and i
 - Base commit: `da542dea080e124a927f13b57fa633b3cb572380`, the task 00.01 documentation baseline, pushed to `origin/main`.
 - Worktree: `/Users/cuneytbozok/.codex/worktrees/finpill-00-02/Finpill`.
 - Branch: `codex/00.02-repository-foundation`.
-- PR: pending creation after fresh-clone verification. No merge is claimed.
+- Implementation commit: `c3963da`; subsequent evidence-only commits retain the same task branch.
+- PR: opened from `codex/00.02-repository-foundation` after verification; consult this task's attached PR for its URL. No merge is claimed.
 - Scope: Git/GitHub connection, toolchain pins, ignore/editor rules, root lockfile and contribution/setup documentation. No application scaffold, database migration, service provisioning or blueprint change.
 
 ### Deliverables and decisions
@@ -231,7 +234,8 @@ Select **00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and i
 - Wrong Node and wrong npm each failed with `EBADDEVENGINES` before installation.
 - Ignore-rule checks passed for 13 excluded paths and seven retained example/source paths.
 - New local documentation links resolve; blueprint SHA-256 remains unchanged from task 00.01.
-- Fresh-clone install and final staged diff review: pending before PR creation.
+- Fresh local clone of implementation commit `c3963da` passed `npm ci --offline --no-audit --no-fund` with the pinned toolchain; the root lockfile was unchanged and the working tree remained clean.
+- Final diff review checks task scope, local links and tracked-file hygiene. Markdown trailing spaces introduced in the ledger were removed before the final diff check.
 - Application lint/typecheck/tests are not available until task 00.03; none is claimed passed.
 
 ### Next-task readiness
