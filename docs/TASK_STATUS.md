@@ -253,7 +253,8 @@ GitHub ownership and repository access are confirmed. Other service access, nati
 - Base commit: `2f9dd0464eb24defdebdd0576cde513c1057c1a2` (merged PR #1).
 - Worktree: `/Users/cuneytbozok/.codex/worktrees/finpill-00-03/Finpill`.
 - Branch: `codex/00.03-workspace-foundation`.
-- Commit/PR: pending final commit and PR creation; no merge is claimed.
+- Implementation commit: `c833576`.
+- PR: [#2 — Static client, Node API and shared contracts](https://github.com/cuneytbozok/finpill/pull/2), opened and attached to the Codex task; no merge is claimed.
 - Scope: npm workspace, independent Next.js application targets, shared contracts, strict TypeScript, lint/format/unit-test/build commands and import-boundary checks. No product screens, routing adapters, authentication, secrets, migrations or service provisioning.
 
 ### Deliverables and contracts
@@ -269,6 +270,7 @@ GitHub ownership and repository access are confirmed. Other service access, nati
 ### Verification
 
 - Pinned-toolchain `npm ci --offline --no-audit --no-fund` passed.
+- Fresh local clone of `c833576` independently passed frozen installation and `npm run check`, with unchanged lockfile and clean tracked files afterward.
 - `npm run check` passed: formatting, zero-warning lint, strict app/contracts/test type checks, 23 tests, static client production build and separate API production build.
 - Production API smoke: GET returns exactly the v1 liveness DTO with `Cache-Control: no-store`; POST returns 405. The temporary server was stopped.
 - Static export contains the Turkish HTML document and local Next static assets, without an API/server output directory.
