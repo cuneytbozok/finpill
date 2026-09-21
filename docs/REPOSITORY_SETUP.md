@@ -37,7 +37,7 @@ The [official Node release index](https://nodejs.org/dist/index.json) lists Node
 
 5. Read [CONTRIBUTING.md](../CONTRIBUTING.md) and choose a ready task from [TASK_STATUS.md](TASK_STATUS.md).
 
-There are no service credentials or application dependencies required at this bootstrap stage. The root manifest is private and dependency-free. Task 00.03 adds client/API/contracts workspaces, TypeScript, lint and test/build commands; task 00.04 adds environment schemas; task 00.05 adds local Supabase and CI.
+No service credentials are needed for the workspace foundation. After installation, run `npm run check` to verify formatting, lint, strict types, unit tests and both production builds. See [WORKSPACE.md](WORKSPACE.md) for the client/API/contracts layout and individual commands. Task 00.04 adds environment schemas; task 00.05 adds local Supabase and CI.
 
 ## Files and secrets
 
