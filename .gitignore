@@ -1,0 +1,49 @@
+# Local environment files; commit only redacted examples.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Dependencies, build output, caches and verification artifacts.
+node_modules/
+.npm/
+.next/
+out/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.log
+.vercel/
+.cache/
+.worktrees/
+
+# Local Supabase state; migrations and config remain tracked.
+supabase/.branches/
+supabase/.temp/
+
+# Native generated output and machine-specific configuration.
+.gradle/
+build/
+DerivedData/
+Pods/
+xcuserdata/
+local.properties
+*.ipa
+*.apk
+*.aab
+
+# Signing material and private keys.
+*.pem
+*.key
+*.p12
+*.p8
+*.jks
+*.keystore
+*.mobileprovision
+
+# Operating-system noise.
+.DS_Store
+._*
+Thumbs.db
