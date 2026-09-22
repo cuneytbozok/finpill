@@ -11,3 +11,28 @@ export const HealthResponseSchema = z.strictObject({
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 
 export { PublicEnvironmentSchema, parseEnvironment } from "./environment";
+export {
+  CANONICAL_ROUTE_PATTERNS,
+  CompanySectionSchema,
+  companyRoute,
+  parseAppRoute,
+  routePath,
+} from "./routes";
+export type { AppRoute, CompanySection } from "./routes";
+export type {
+  AuthPort,
+  ClientPlatform,
+  NavigationListener,
+  NavigationPort,
+} from "./platform";
+export {
+  ApiProblemSchema,
+  ApiTransportError,
+  createApiTransport,
+} from "./transport";
+export type {
+  ApiProblem,
+  ApiRequest,
+  ApiTransport,
+  CreateApiTransportOptions,
+} from "./transport";
