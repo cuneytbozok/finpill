@@ -87,6 +87,7 @@ describe("public configuration", () => {
       try {
         validateClientEnvironment({ ...localClient, [key]: "private-canary" });
       } catch (error) {
+        expect(String(error)).toContain(key);
         expect(String(error)).not.toContain("private-canary");
       }
     }

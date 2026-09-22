@@ -32,16 +32,15 @@ const platformPublicKeys = new Set([
 
 export function validateClientEnvironment(env: NodeJS.ProcessEnv) {
   // Unknown public names could accidentally expose a privileged credential.
-  if (
-    Object.keys(env).some(
-      (key) =>
-        key.startsWith("NEXT_PUBLIC_") &&
-        !publicKeys.has(key) &&
-        !platformPublicKeys.has(key),
-    )
-  ) {
+  const unknownKeys = Object.keys(env).filter(
+    (key) =>
+      key.startsWith("NEXT_PUBLIC_") &&
+      !publicKeys.has(key) &&
+      !platformPublicKeys.has(key),
+  );
+  if (unknownKeys.length > 0) {
     throw new Error(
-      "Unrecognized NEXT_PUBLIC_ setting; use the public environment allowlist",
+      `Unrecognized NEXT_PUBLIC_ setting; use the public environment allowlist: ${unknownKeys.sort().join(", ")}`,
     );
   }
   return parseEnvironment(PublicEnvironmentSchema, env);
