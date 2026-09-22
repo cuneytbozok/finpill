@@ -5,7 +5,7 @@
 
 **State:** ready — local application IDs and signing approach are owner-confirmed; native implementation and acceptance have not started.
 
-**Application implementation:** Static client route shell, shared runtime interfaces, and API scaffold; product features are not implemented.
+**Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
 **Last updated:** 2026-09-23.
