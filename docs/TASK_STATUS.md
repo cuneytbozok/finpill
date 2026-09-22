@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 00.03 — Client/API/contracts workspace and development tooling.
+**Current task:** 00.04 — Zod environment schemas and environment matrix.
 
-**State:** in_review — workspace checks and production smoke passed; PR review and merge remain.
+**State:** in_review — clean-install checks and environment smoke passed; PR review and merge remain.
 
 **Application implementation:** Static client/API scaffold only; product features are not implemented.
 
@@ -33,9 +33,9 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 |---|---|---|
 | 00.01 | complete | Baseline commit `da542dea080e124a927f13b57fa633b3cb572380` on `main`; historical handoff below. |
 | 00.02 | complete | PR #1 merged as `2f9dd0464eb24defdebdd0576cde513c1057c1a2`; confirmed from GitHub and fetched Git history. |
-| 00.03 | in_review | See task 00.03 handoff below. |
-| 00.04 | pending | — |
-| 00.05 | pending | — |
+| 00.03 | complete | See task 00.03 handoff below. |
+| 00.04 | in_review | Isolated `codex/00.04-environment-validation` worktree; handoff below. |
+| 00.05 | ready | Prerequisite 00.03 merged in PR #2; database/CI ownership remains separate. |
 | 00.06 | ready | Independent access-register task; no service access assumed. |
 
 ### Phase 01 — Production web/native foundation, authentication, and design system
@@ -245,7 +245,7 @@ After review and merge acceptance for 00.02, mark it complete and select **00.03
 
 GitHub ownership and repository access are confirmed. Other service access, native signing, fixture rights and data-provider prerequisites remain unverified and belong to task 00.06 and their consuming tasks. No pilot data or credentials were committed.
 
-## Task 00.03 handoff
+## Task 00.03 handoff (historical)
 
 ### Scope and ownership
 
@@ -254,7 +254,7 @@ GitHub ownership and repository access are confirmed. Other service access, nati
 - Worktree: `/Users/cuneytbozok/.codex/worktrees/finpill-00-03/Finpill`.
 - Branch: `codex/00.03-workspace-foundation`.
 - Implementation commit: `c833576`.
-- PR: [#2 — Static client, Node API and shared contracts](https://github.com/cuneytbozok/finpill/pull/2), opened and attached to the Codex task; no merge is claimed.
+- PR: [#2 — Static client, Node API and shared contracts](https://github.com/cuneytbozok/finpill/pull/2), merged on 2026-09-22 as `9e2e9ffb920536a41be07d2b9785ed8f61bd197f`; GitHub merged state and local fast-forward verified.
 - Scope: npm workspace, independent Next.js application targets, shared contracts, strict TypeScript, lint/format/unit-test/build commands and import-boundary checks. No product screens, routing adapters, authentication, secrets, migrations or service provisioning.
 
 ### Deliverables and contracts
@@ -296,3 +296,61 @@ The first Vercel preview for `8aa2e76` failed before installation because the ma
 After PR review and merge, mark 00.03 complete. Tasks **00.04 — Environment schemas** and **00.05 — Local database/CI** become ready; **00.06 — Access register** is already independently ready. Do not mark these tasks complete based on this scaffold.
 
 00.04 and 00.05 may use separate worktrees after their common prerequisite merges, with one coordinator handling root dependency/lockfile and task-ledger changes. Different worktrees need distinct local ports and explicitly isolated databases; worktrees isolate files, not external resources. No additional agents or user-owned chats were launched in this session.
+
+## Task 00.04 handoff
+
+### Scope and ownership
+
+- Owner: Codex, task 00.04 implementation session; sole owner of shared environment contracts and manifest/lockfile edits.
+- Base commit: `9e2e9ffb920536a41be07d2b9785ed8f61bd197f`, merged PR #2, verified against GitHub and fetched locally.
+- Worktree: `/Users/cuneytbozok/Documents/Projeler/Finpill/.worktrees/00.04`.
+- Branch: `codex/00.04-environment-validation`.
+- Implementation commit: `d3bf1ff`; PR [#3 — Validate public and server environment configuration](https://github.com/cuneytbozok/finpill/pull/3), opened and attached to the Codex task. Review and merge remain.
+- Publication explicitly approved by the owner on 2026-09-22. GitHub initially flagged a fixed fake secret canary; test values now generate at runtime. Unpublished commits were consolidated to remove the flagged literal; no published history was rewritten.
+- Scope: environment validation, credential-free examples, environment matrix, tested public/server boundaries and draft A03. No service provisioning, provider calls, migrations, financial changes or blueprint rewrite.
+
+### Deliverables and changed contracts
+
+- [Environment matrix and setup](ENVIRONMENTS.md), per-app `.env.example` files and [draft A03](adr/A03-environments-and-releases.md).
+- Public environment schema/reader: required app environment/API origin, explicit auth prerequisites, public-name allowlist and literal build-time replacements.
+- Server schema: required app environment/client origins; conditional auth, user-scoped database, privileged data and KAP requirements. Service flags default disabled; no origin/credential defaults.
+- Server validation at configuration load and Node runtime startup; field-only errors. Client/shared lint rejects environment access outside the validated reader and existing server import restrictions remain.
+- Current Supabase publishable/secret key types are distinguished. Privileged access is separately enabled and must not authorize ordinary user requests.
+- New `npm run test:environment-build` command performs actual invalid/valid build and runtime checks plus a static secret-canary scan.
+- Existing builds/type generation now require explicit environment settings. Hosted client previews must set `NEXT_PUBLIC_APP_ENV=staging` and their actual HTTPS `NEXT_PUBLIC_API_ORIGIN`; no URL was invented or written to an external deployment.
+
+### Verification
+
+- `npm run check` passed on Node 24.21.0/npm 11.19.0: formatting, zero-warning lint, strict type checks, 55 tests and both independent production builds.
+- Actual build/runtime smoke passed: missing API origin, unknown public variable and missing server environment reject builds; valid API serves v1 liveness; invalid runtime environment stops startup. The sandbox initially blocked a loopback listener; the rerun with local-listener permission passed.
+- All 21 client export files were scanned for fake Clerk, Supabase and KAP secret canaries; none appeared. Browser JavaScript includes the configured public API origin.
+- Blueprint SHA-256 remains `221d658915a46afdfe7983f908715a0c710c12e666068d974fd1de7941f22008`.
+- Context7 consulted for Next/Zod/Supabase configuration; current Supabase changelog and key guidance reviewed. No live service, hosted deployment, native build, authorization or RLS validation is claimed.
+- Fresh clone of `729f56e`: frozen offline installation, full `npm run check`, and `npm run test:environment-build` passed; lockfile and tracked tree remained unchanged. No service `.env` files were copied.
+- After replacing fixed fake canaries with runtime-generated test values, full checks (55 tests and both builds) and the build/runtime artifact scan passed again. GitHub accepted the consolidated branch without a push-protection bypass.
+- Changed-document links resolve; final diff whitespace check passed.
+
+### Next-task handoff
+
+Task **00.05 — Local database/CI** and independent **00.06 — Access register** are ready. Prefer 00.05 next; CI should supply explicit disposable/local environment settings from the matrix. Task **01.01** becomes ready only after 00.04 merges. Public runtime reads for transport must use the validated reader; do not scatter `process.env` across client code.
+
+A03 remains draft. Native origins/application IDs, service ownership, preview/pilot isolation, real credentials, KAP production protocol and installed-client release compatibility still need their owning tasks' evidence. AI/market-provider requirements must be added when providers are selected. No architecture gate is accepted by these schema tests.
+
+### Task 00.04 Vercel metadata correction — 2026-09-22
+
+- The owner-reported hosted build failed because the client validator treated Vercel's framework-prefixed public metadata as unknown application settings. A regression test reproduced the exact error before the fix.
+- Added an exact platform metadata allowlist from current Vercel framework documentation and builder source, verified through Context7. Metadata is stripped from Finpill's parsed settings and does not replace the required app environment or API origin. Unknown public names, including Vercel-prefixed tokens/secrets, still fail.
+- Full check passes: formatting, lint, typecheck, 57 tests and both production builds. Build/runtime smoke also passes with injected Vercel metadata; all 21 static artifacts remain free of generated secret canaries.
+- Hosted confirmation remains pending. The Vercel build-log connector returned `Tool get_deployment_build_logs not found`; use the GitHub deployment status to follow the new commit. No hosted environment values were changed.
+- Hosted commit `9ca9833` still failed with an unknown public name (owner supplied the new log). The exact CLI 59.23.2 dependency, `@vercel/build-utils` 14.10.1, confirms the known platform names plus injected `VERCEL_GIT_*` metadata. No broad prefix exemption was added. Errors now identify rejected variable names without values, with regression coverage; the full 57-test check and both builds pass. Hosted completion is blocked until the remaining name is identified from project settings or the diagnostic build log.
+
+
+### Vercel scaffold configuration follow-up
+
+- Owner confirmed no manually configured Vercel environment variables. The static placeholder now defaults API access to disabled; `NEXT_PUBLIC_API_ORIGIN` is required only with `NEXT_PUBLIC_API_ENABLED=true`. Supplied origins still validate, and no service URL is synthesized.
+- With `VERCEL=1`, the client build maps Vercel preview/production/development to staging/production/local, then inlines that validated public environment. Explicit app environment values take precedence; unknown deployment values fail. Server requirements are unchanged.
+- Added documented `NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA`, which the exact CLI builder prefixes but the framework-variable page omits. New smoke coverage builds with zero manually configured app variables and Vercel metadata. This supersedes the earlier requirement for an API origin on an API-disabled scaffold.
+- Task 01.01 must use the validated API-enabled flag and configure a real origin before transport requests. A successful placeholder deployment does not validate API reachability or any architecture gate.
+- Verification: full check passed with 61 tests, strict types, lint, formatting and both production builds; the expanded zero-manual-variable Vercel scaffold build and secret-canary/runtime smoke passed.
+- The diagnostic hosted log for `3156c70` identified `NEXT_PUBLIC_VERCEL_OBSERVABILITY_CLIENT_CONFIG` as the remaining rejected name. Added that exact platform setting, kept it outside parsed app configuration, and included it in unit and zero-manual-variable build smoke fixtures. Full checks (61 tests and both builds), runtime smoke and all 21 artifact scans passed again. This resolves the identified code defect; hosted verification follows the new commit.
+- Hosted verification passed: GitHub's Vercel status for implementation commit `007e74778b20ceaa4efbafe057bb1e9b225f626e` is `success`; [successful deployment](https://vercel.com/cuneyts-projects-ec980692/finpill/936WnTnEajTKaSNfYvASswGDNRCf). The configuration-load build failure is resolved without manually configured project variables. Task 00.04 remains in review pending PR acceptance/merge.

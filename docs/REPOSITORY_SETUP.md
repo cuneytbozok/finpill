@@ -37,7 +37,9 @@ Vercel selects only a Node major and manages minor/patch upgrades. Requiring exa
 
    The local reference reports `v24.21.0` and `11.19.0`. Expect successful installation and no tracked changes. Other supported Node 24/npm 11 patches are accepted; unsupported major versions fail.
 
-5. Read [CONTRIBUTING.md](../CONTRIBUTING.md) and choose a ready task from [TASK_STATUS.md](TASK_STATUS.md).
+5. Copy the credential-free per-application environment examples as described in [ENVIRONMENTS.md](ENVIRONMENTS.md) before running typecheck, development or builds.
+
+6. Read [CONTRIBUTING.md](../CONTRIBUTING.md) and choose a ready task from [TASK_STATUS.md](TASK_STATUS.md).
 
 No service credentials are needed for the workspace foundation. After installation, run `npm run check` to verify formatting, lint, strict types, unit tests and both production builds. See [WORKSPACE.md](WORKSPACE.md) for the client/API/contracts layout and individual commands. Task 00.04 adds environment schemas; task 00.05 adds local Supabase and CI.
 

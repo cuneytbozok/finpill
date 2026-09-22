@@ -10,7 +10,7 @@ Task 00.03 establishes the build and verification structure. It does not accept 
 | `apps/api` / `@finpill/api` | Next.js Node.js API and server-only modules | `apps/api/.next/` |
 | `packages/contracts` / `@finpill/contracts` | Platform-neutral schemas and DTOs | TypeScript source consumed by each app |
 
-Both apps transpile the shared contracts package directly. No separate package publish/build step or extra build orchestrator is required. Contracts have no Node or browser ambient types; runtime DTO validation uses Zod. Do not export database rows, credentials, provider clients or financial-domain implementations from this package.
+Both apps transpile the shared contracts package directly. No separate package publish/build step or extra build orchestrator is required. Contracts exclude Node ambient types and use standard web types for URL validation; runtime DTO validation uses Zod. Do not export database rows, credentials, provider clients or financial-domain implementations from this package.
 
 The only endpoint is `GET /api/v1/health`, returning `{"status":"ok","apiVersion":"v1"}` with `Cache-Control: no-store`. It reports process liveness only. It does not claim database/provider readiness and contains no user data. The client does not call this endpoint yet.
 
@@ -18,7 +18,7 @@ All application source lives under each workspace's `src/`. Place API integratio
 
 ## Commands
 
-Run commands at the repository root with the pinned Node/npm versions:
+Run commands at the repository root with the pinned Node/npm versions. First configure the explicit local settings in [ENVIRONMENTS.md](ENVIRONMENTS.md); builds and type generation now reject missing environment settings:
 
 | Command | Purpose |
 |---|---|
@@ -30,7 +30,8 @@ Run commands at the repository root with the pinned Node/npm versions:
 | `npm run start --workspace @finpill/api` | Serve the built API on port 3001 |
 | `npm run lint` | ESLint, including workspace import boundaries |
 | `npm run typecheck` | Generate Next route types; strictly check apps, contracts and TypeScript tests |
-| `npm test` | Run contract and boundary tests once |
+| `npm test` | Run contract, configuration and boundary tests once |
+| `npm run test:environment-build` | Build and runtime configuration checks plus secret-canary artifact scan |
 | `npm run test:watch` | Watch unit tests |
 | `npm run format:check` / `npm run format` | Check/write source and config formatting |
 | `npm run check` | Formatting, lint, types, tests, then both production builds |

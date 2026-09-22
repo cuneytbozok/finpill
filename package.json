@@ -19,7 +19,8 @@
     "typecheck": "npm run typecheck --workspaces && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "test:environment-build": "node tools/check-environment-build.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
