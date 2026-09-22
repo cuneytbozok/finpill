@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 00.05 — Local database, disposable migration replay and initial CI.
+**Current task:** 00.06 — Access register for external prerequisites.
 
-**State:** in_review — implementation and required GitHub Actions database replay have passed; PR #4 awaits acceptance and merge.
+**State:** complete — access ownership and evidence are explicitly recorded; no external access is assumed.
 
 **Application implementation:** Static client/API scaffold only; product features are not implemented.
 
@@ -35,8 +35,8 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 00.02 | complete | PR #1 merged as `2f9dd0464eb24defdebdd0576cde513c1057c1a2`; confirmed from GitHub and fetched Git history. |
 | 00.03 | complete | See task 00.03 handoff below. |
 | 00.04 | complete | PR #3 merged as `bd491ac85dded7f41760e783131a20d3da57eeed`; verified from GitHub and fetched locally. |
-| 00.05 | in_review | Required GitHub Actions quality and disposable database replay passed; laptop Docker remains deferred by owner. PR #4 awaits acceptance/merge. See handoff. |
-| 00.06 | ready | Independent access-register task; no service access assumed. |
+| 00.05 | complete | PR #4 merged as `0febc76`; confirmed from fetched `origin/main`. |
+| 00.06 | complete | [Access register](ACCESS_REGISTER.md) records each prerequisite owner, environment/status, evidence, and consuming-task gate without secrets. See handoff. |
 
 ### Phase 01 — Production web/native foundation, authentication, and design system
 
@@ -369,3 +369,14 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - First hosted run: [quality passed](https://github.com/cuneytbozok/finpill/actions/runs/35762529841/job/106863852613). The database replay applied the baseline twice and passed all five pgTAP checks, then failed while a test probe assumed a generated Docker container name. The runner now uses the CLI's explicit `supabase db query --local` instead.
 - Hosted acceptance passed on [CI run #2](https://github.com/cuneytbozok/finpill/actions/runs/35763173280): [quality](https://github.com/cuneytbozok/finpill/actions/runs/35763173280/job/106866037121) passed `npm run check`, environment smoke and generated-file verification; [database](https://github.com/cuneytbozok/finpill/actions/runs/35763173280/job/106866037487) passed the disposable `npm run db:test` migration replays, CLI probe, resets and pgTAP checks. PR review and merge are the only remaining step.
 - Next ready tasks after review: 00.06 access register and 01.01 runtime interfaces. Select one per session; use an isolated worktree and respect remaining architecture gates.
+
+## Task 00.06 handoff
+
+- Owner: Codex, sole owner of the access-register documentation and ledger update.
+- Base: `0febc76`, merged PR #4, verified from fetched `origin/main`.
+- Worktree: `/Users/cuneytbozok/.codex/worktrees/00-06-access-register/Finpill`; branch `codex/00.06-access-register`.
+- Deliverable: [access register](ACCESS_REGISTER.md) records the required GitHub, Supabase, Clerk, Vercel, KAP/MKK, market-provider, domain, native-signing, and fixture prerequisites, plus the current AI-provider gate. Each row has an owner, environment/identifier status, evidence/rights disposition, and consuming task.
+- Confirmed evidence is deliberately narrow: the public GitHub repository and merged PRs, disposable local Supabase CI replay, and credential-free static Vercel preview. Hosted service access, production origins, identities, data rights, fixtures, and signing identities are unconfirmed rather than guessed.
+- Verification: internal document links resolve; register contains no credential-shaped values; task scope remains documentation only. Application lint, typecheck, tests and builds are unchanged by this task and were not rerun as task evidence.
+- No service account, secret, domain, fixture, migration, provider selection, or architecture gate was created or accepted. The blueprint remains unchanged.
+- Next ready task in roadmap order: **01.01 — Static client entry, shared route registry, API transport, `AuthPort` and platform interfaces**. Its web/API implementation may begin, but native/auth and service-access gates remain unaccepted; select it in a new isolated implementation session.
