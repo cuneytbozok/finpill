@@ -335,3 +335,10 @@ After PR review and merge, mark 00.03 complete. Tasks **00.04 — Environment sc
 Task **00.05 — Local database/CI** and independent **00.06 — Access register** are ready. Prefer 00.05 next; CI should supply explicit disposable/local environment settings from the matrix. Task **01.01** becomes ready only after 00.04 merges. Public runtime reads for transport must use the validated reader; do not scatter `process.env` across client code.
 
 A03 remains draft. Native origins/application IDs, service ownership, preview/pilot isolation, real credentials, KAP production protocol and installed-client release compatibility still need their owning tasks' evidence. AI/market-provider requirements must be added when providers are selected. No architecture gate is accepted by these schema tests.
+
+### Task 00.04 Vercel metadata correction — 2026-09-22
+
+- The owner-reported hosted build failed because the client validator treated Vercel's framework-prefixed public metadata as unknown application settings. A regression test reproduced the exact error before the fix.
+- Added an exact platform metadata allowlist from current Vercel framework documentation and builder source, verified through Context7. Metadata is stripped from Finpill's parsed settings and does not replace the required app environment or API origin. Unknown public names, including Vercel-prefixed tokens/secrets, still fail.
+- Full check passes: formatting, lint, typecheck, 57 tests and both production builds. Build/runtime smoke also passes with injected Vercel metadata; all 21 static artifacts remain free of generated secret canaries.
+- Hosted confirmation remains pending. The Vercel build-log connector returned `Tool get_deployment_build_logs not found`; use the GitHub deployment status to follow the new commit. No hosted environment values were changed.

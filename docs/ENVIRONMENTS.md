@@ -37,7 +37,7 @@ Next loads `.env` files from each application directory, not the monorepo root. 
 
 ## Public settings
 
-Only the following `NEXT_PUBLIC_` names are allowed in the client build:
+Finpill reads only the following `NEXT_PUBLIC_` application settings:
 
 | Name | Requirement |
 |---|---|
@@ -46,7 +46,7 @@ Only the following `NEXT_PUBLIC_` names are allowed in the client build:
 | `NEXT_PUBLIC_AUTH_ENABLED` | Literal `true` / `false`; omitted means disabled |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Required when auth enabled; test key outside production, live key in production |
 
-The public reader uses literal `process.env.NEXT_PUBLIC_*` references for Next's build-time replacement. The platform-neutral public schema strips unrelated server settings. The client build rejects unknown public names to catch accidentally prefixed secrets. Client/shared source must use the validated reader rather than reading environment variables elsewhere; lint checks direct environment access as well as import boundaries. This is a guardrail, not a sandbox against intentionally obfuscated code.
+The public reader uses literal `process.env.NEXT_PUBLIC_*` references for Next's build-time replacement. The platform-neutral public schema strips unrelated server settings. The client build also permits an exact list of Vercel framework metadata names (deployment URLs, environment, region, project/deployment IDs, hash salt and documented Git metadata). These are ignored by the application schema and never substitute for its required settings. Unknown public names, including secret/token names under `NEXT_PUBLIC_VERCEL_`, remain rejected. See [Vercel framework variables](https://vercel.com/docs/environment-variables/framework-environment-variables). Client/shared source must use the validated reader rather than reading environment variables elsewhere; lint checks direct environment access as well as import boundaries. This is a guardrail, not a sandbox against intentionally obfuscated code.
 
 Changing public settings requires rebuilding and redistributing the web/native artifact. Never put secrets in `next.config`'s `env` or compiler replacement options. Public keys are not authorization; auth enforcement and invitation eligibility remain 01.03–01.06.
 

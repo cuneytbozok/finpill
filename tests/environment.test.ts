@@ -63,6 +63,35 @@ describe("public configuration", () => {
       }).NEXT_PUBLIC_API_ORIGIN,
     ).toBe("https://api.example.com");
   });
+  it("accepts Vercel framework metadata without exposing it as app configuration", () => {
+    const result = validateClientEnvironment({
+      ...localClient,
+      NEXT_PUBLIC_VERCEL_URL: "preview.vercel.app",
+      NEXT_PUBLIC_VERCEL_ENV: "preview",
+      NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: "test-sha",
+      NEXT_PUBLIC_VERCEL_PROJECT_ID: "test-project",
+    });
+    expect(result).toEqual(validateClientEnvironment(localClient));
+  });
+
+  it("does not broadly trust the Vercel prefix or leak rejected values", () => {
+    for (const key of [
+      "NEXT_PUBLIC_VERCEL_SECRET",
+      "NEXT_PUBLIC_VERCEL_OIDC_TOKEN",
+      "NEXT_PUBLIC_VERCEL_GIT_TOKEN",
+      "NEXT_PUBLIC_API_ORGIN",
+    ]) {
+      expect(() =>
+        validateClientEnvironment({ ...localClient, [key]: "private-canary" }),
+      ).toThrow("allowlist");
+      try {
+        validateClientEnvironment({ ...localClient, [key]: "private-canary" });
+      } catch (error) {
+        expect(String(error)).not.toContain("private-canary");
+      }
+    }
+  });
+
   it("exposes only allowlisted public settings", () => {
     expect(
       parseEnvironment(PublicEnvironmentSchema, {
