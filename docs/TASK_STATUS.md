@@ -1,11 +1,11 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 00.06 — Access register for external prerequisites.
+**Current task:** 01.01 — Static client entry and shared runtime interfaces.
 
-**State:** in_review — access ownership and evidence are explicitly recorded; no external access is assumed and PR review remains.
+**State:** in_review — routing and transport contracts are implemented; PR review remains.
 
-**Application implementation:** Static client/API scaffold only; product features are not implemented.
+**Application implementation:** Static client route shell, shared runtime interfaces, and API scaffold; product features are not implemented.
 
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
 **Last updated:** 2026-09-22.
@@ -387,10 +387,10 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Owner: Codex, sole owner of the shared client route, transport and platform contracts.
 - Base: `d1f520b5a26cbd8b96786af1712332d0efd1def3`, fetched `origin/main` after PRs #5 and #6 merged.
 - Worktree: `/Users/cuneytbozok/.codex/worktrees/01-01-runtime-interfaces/Finpill`; branch `codex/01.01-runtime-interfaces`.
-- Implementation originally committed as `d26ab40143830c72e9e0d38ccb2b78da7751cbcc`; rebased onto current `origin/main` before publication. PR review remains.
+- Implementation commit: `f22a65e2983fce588c5ddcc47402e98179a671e0`, rebased onto current `origin/main`. [PR #7](https://github.com/cuneytbozok/finpill/pull/7) is open for review.
 - Deliverables: centralized canonical route parser/builders for every approved fixed and company section URL; a browser navigation adapter; minimal asynchronous `AuthPort`; validated, version-scoped API transport with centralized bearer-token acquisition and response validation; and a static client shell using those interfaces.
 - Static delivery: Vercel’s configured SPA rewrite directs unknown canonical paths to `index.html`, where the route registry resolves arbitrary tickers without a build-time ticker list. Other web hosts and future native shells must provide the equivalent entry-asset fallback. No server-side client routing, client credential, or API request from the API-disabled shell was added.
 - Verification: credential-free local `npm run check` passed with formatting, zero-warning lint, strict type checks, 85 tests, static client build and API build. `npm run test:environment-build` passed its invalid-configuration, runtime-liveness and static secret-artifact checks. New route/transport tests cover arbitrary ticker paths, malformed/unknown paths, history-safe route construction, token propagation, network failures, malformed response rejection, and Vercel’s static fallback configuration.
-- Browser verification: the local static shell visibly rendered its navigation and content, and client navigation from home to `/search` worked without an error overlay. Next’s local development server intentionally cannot serve an arbitrary ungenerated static-export path on refresh; the committed Vercel fallback configuration is the production mechanism and is unit-verified. No hosted deployment, Capacitor shell, Clerk adapter, real API endpoint, or authentication flow is claimed verified.
+- Browser verification: the local static shell visibly rendered its navigation and content, and client navigation from home to `/search` worked without an error overlay. [Hosted Vercel preview](https://finpill-git-codex-0101-runtime-8acf64-cuneyts-projects-ec980692.vercel.app/company/XYZ.123/ratios) loaded an arbitrary ticker route directly and after browser refresh; `/unknown` rendered the app's not-found state. The initial static HTML briefly displays the home placeholder before route hydration. No Capacitor shell, Clerk adapter, real API endpoint, or authentication flow is claimed verified.
 - No migration, financial calculation, service credential, RLS behavior, or architecture gate was added or accepted. A01–A03 remain draft/unaccepted.
 - Next-task handoff: after 01.01 review/merge, select the first eligible Phase 01 task. 01.02 and 01.03 depend on the now-merged 00.06 access register; consuming tasks must still verify their specific external prerequisites. Do not start dependent work before verifying the final merged ledger and external-access state.
