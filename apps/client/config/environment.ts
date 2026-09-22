@@ -24,6 +24,7 @@ const platformPublicKeys = new Set([
   "NEXT_PUBLIC_VERCEL_GIT_REPO_ID",
   "NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF",
   "NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA",
+  "NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA",
   "NEXT_PUBLIC_VERCEL_GIT_COMMIT_MESSAGE",
   "NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_LOGIN",
   "NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_NAME",
@@ -43,5 +44,18 @@ export function validateClientEnvironment(env: NodeJS.ProcessEnv) {
       `Unrecognized NEXT_PUBLIC_ setting; use the public environment allowlist: ${unknownKeys.sort().join(", ")}`,
     );
   }
-  return parseEnvironment(PublicEnvironmentSchema, env);
+  const deploymentEnvironment =
+    env.VERCEL === "1"
+      ? (
+          {
+            production: "production",
+            preview: "staging",
+            development: "local",
+          } as Record<string, string>
+        )[env.VERCEL_ENV ?? ""]
+      : undefined;
+  return parseEnvironment(PublicEnvironmentSchema, {
+    ...env,
+    NEXT_PUBLIC_APP_ENV: env.NEXT_PUBLIC_APP_ENV ?? deploymentEnvironment,
+  });
 }

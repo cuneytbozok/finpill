@@ -40,12 +40,21 @@ export function isHostedOrigin(value: string): boolean {
 export const PublicEnvironmentSchema = z
   .object({
     NEXT_PUBLIC_APP_ENV: EnvironmentSchema,
-    NEXT_PUBLIC_API_ORIGIN: OriginSchema,
+    NEXT_PUBLIC_API_ENABLED: FeatureFlagSchema,
+    NEXT_PUBLIC_API_ORIGIN: OriginSchema.optional(),
     NEXT_PUBLIC_AUTH_ENABLED: FeatureFlagSchema,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
+    if (env.NEXT_PUBLIC_API_ENABLED && !env.NEXT_PUBLIC_API_ORIGIN) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_API_ORIGIN"],
+        message: "Enabled API requires an explicit origin",
+      });
+    }
     if (
+      env.NEXT_PUBLIC_API_ORIGIN !== undefined &&
       env.NEXT_PUBLIC_APP_ENV !== "local" &&
       !isHostedOrigin(env.NEXT_PUBLIC_API_ORIGIN)
     ) {

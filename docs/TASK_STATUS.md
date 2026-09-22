@@ -343,3 +343,12 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Full check passes: formatting, lint, typecheck, 57 tests and both production builds. Build/runtime smoke also passes with injected Vercel metadata; all 21 static artifacts remain free of generated secret canaries.
 - Hosted confirmation remains pending. The Vercel build-log connector returned `Tool get_deployment_build_logs not found`; use the GitHub deployment status to follow the new commit. No hosted environment values were changed.
 - Hosted commit `9ca9833` still failed with an unknown public name (owner supplied the new log). The exact CLI 59.23.2 dependency, `@vercel/build-utils` 14.10.1, confirms the known platform names plus injected `VERCEL_GIT_*` metadata. No broad prefix exemption was added. Errors now identify rejected variable names without values, with regression coverage; the full 57-test check and both builds pass. Hosted completion is blocked until the remaining name is identified from project settings or the diagnostic build log.
+
+
+### Vercel scaffold configuration follow-up
+
+- Owner confirmed no manually configured Vercel environment variables. The static placeholder now defaults API access to disabled; `NEXT_PUBLIC_API_ORIGIN` is required only with `NEXT_PUBLIC_API_ENABLED=true`. Supplied origins still validate, and no service URL is synthesized.
+- With `VERCEL=1`, the client build maps Vercel preview/production/development to staging/production/local, then inlines that validated public environment. Explicit app environment values take precedence; unknown deployment values fail. Server requirements are unchanged.
+- Added documented `NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA`, which the exact CLI builder prefixes but the framework-variable page omits. New smoke coverage builds with zero manually configured app variables and Vercel metadata. This supersedes the earlier requirement for an API origin on an API-disabled scaffold.
+- Task 01.01 must use the validated API-enabled flag and configure a real origin before transport requests. A successful placeholder deployment does not validate API reachability or any architecture gate.
+- Verification: full check passed with 61 tests, strict types, lint, formatting and both production builds; the expanded zero-manual-variable Vercel scaffold build and secret-canary/runtime smoke passed.

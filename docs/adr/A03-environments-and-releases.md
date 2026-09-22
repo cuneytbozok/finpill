@@ -20,7 +20,7 @@ Use explicit `local`, `staging`, and `production` app environments independently
 
 ## Consequences
 
-Existing hosted builds must supply explicit public settings before adopting this change. Public setting changes require a fresh static/native build. Nonlocal HTTPS syntax alone cannot verify a remote project's identity; the access register must identify each environment. No provider adapter, authorization boundary or release compatibility policy is accepted by schema tests.
+Vercel scaffold builds may derive app environment from platform metadata while API/auth are disabled. Enabling API access requires an explicit origin. Other hosts require explicit app environment settings. Public setting changes require a fresh static/native build. Nonlocal HTTPS syntax alone cannot verify a remote project's identity; the access register must identify each environment. No provider adapter, authorization boundary or release compatibility policy is accepted by schema tests.
 
 ## Evidence still required for acceptance
 

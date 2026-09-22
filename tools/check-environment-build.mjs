@@ -25,6 +25,8 @@ const env = {
   NEXT_PUBLIC_VERCEL_ENV: "preview",
   NEXT_PUBLIC_VERCEL_URL: "finpill-build-check.vercel.app",
   NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: "test-build-sha",
+  NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA: "previous-test-build-sha",
+  NEXT_PUBLIC_API_ENABLED: "true",
   NEXT_PUBLIC_APP_ENV: "production",
   NEXT_PUBLIC_API_ORIGIN: "https://api.build-check.example.com",
   NEXT_PUBLIC_AUTH_ENABLED: "false",
@@ -62,6 +64,15 @@ function build(app, overrides = {}, succeeds = true) {
 build("client", { NEXT_PUBLIC_API_ORIGIN: "" }, false);
 build("client", { NEXT_PUBLIC_KAP_API_SECRET: "forbidden" }, false);
 build("api", { APP_ENV: "" }, false);
+// Reproduce Vercel with zero manually configured app variables.
+build("client", {
+  VERCEL: "1",
+  VERCEL_ENV: "preview",
+  NEXT_PUBLIC_APP_ENV: undefined,
+  NEXT_PUBLIC_API_ORIGIN: undefined,
+  NEXT_PUBLIC_API_ENABLED: undefined,
+  NEXT_PUBLIC_AUTH_ENABLED: undefined,
+});
 build("client");
 
 async function files(directory) {

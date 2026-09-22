@@ -9,7 +9,7 @@ Task 00.04 adds fail-closed configuration validation. It does not provision serv
 | Setting | Local | Staging / preview | Production / private pilot |
 |---|---|---|---|
 | App environment | `local` | `staging` | `production` |
-| API origin | Explicit local API origin allowed | Explicit HTTPS staging API origin | Explicit HTTPS pilot API origin |
+| API origin, when enabled | Explicit local API origin allowed | Explicit HTTPS staging API origin | Explicit HTTPS pilot API origin |
 | Client origins | Explicit comma-separated origins | Approved HTTPS preview/staging origins | Approved HTTPS pilot origins |
 | Clerk, when enabled | Test instance and keys | Isolated test instance and keys | Live instance and keys |
 | Supabase, when enabled | Disposable local instance | Isolated staging project | Pilot project; never a test target |
@@ -31,7 +31,7 @@ cp apps/api/.env.example apps/api/.env.local
 npm run check
 ```
 
-Do not copy a pilot environment for tests. Examples disable all integrations and contain no credentials. Missing required base settings fail `next dev`, `next typegen`, `next build` and API startup. CI must supply the same explicit non-pilot settings; there is no CI bypass.
+Do not copy a pilot environment for tests. Examples disable all integrations and contain no credentials. Outside Vercel, the client requires an explicit app environment. Missing required base settings fail `next dev`, `next typegen`, `next build` and API startup. CI must supply the same explicit non-pilot settings; there is no CI bypass.
 
 Next loads `.env` files from each application directory, not the monorepo root. Shell/deployment variables take precedence. `NODE_ENV` controls Next's standard dotenv file selection; `.env.staging` is not automatically loaded. Do not set `NODE_ENV=staging`.
 
@@ -41,12 +41,15 @@ Finpill reads only the following `NEXT_PUBLIC_` application settings:
 
 | Name | Requirement |
 |---|---|
-| `NEXT_PUBLIC_APP_ENV` | Required: `local`, `staging`, `production` |
-| `NEXT_PUBLIC_API_ORIGIN` | Required origin; transport will add `/api/v1` in 01.01 |
+| `NEXT_PUBLIC_APP_ENV` | `local`, `staging`, `production`; when omitted on Vercel, derived from its deployment environment |
+| `NEXT_PUBLIC_API_ENABLED` | Literal `true` / `false`; omitted means disabled |
+| `NEXT_PUBLIC_API_ORIGIN` | Required only with API enabled; supplied values always validated. Transport will add `/api/v1` in 01.01 |
 | `NEXT_PUBLIC_AUTH_ENABLED` | Literal `true` / `false`; omitted means disabled |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Required when auth enabled; test key outside production, live key in production |
 
-The public reader uses literal `process.env.NEXT_PUBLIC_*` references for Next's build-time replacement. The platform-neutral public schema strips unrelated server settings. The client build also permits an exact list of Vercel framework metadata names (deployment URLs, environment, region, project/deployment IDs, hash salt and documented Git metadata). These are ignored by the application schema and never substitute for its required settings. Unknown public names, including secret/token names under `NEXT_PUBLIC_VERCEL_`, remain rejected. See [Vercel framework variables](https://vercel.com/docs/environment-variables/framework-environment-variables). Client/shared source must use the validated reader rather than reading environment variables elsewhere; lint checks direct environment access as well as import boundaries. This is a guardrail, not a sandbox against intentionally obfuscated code.
+The public reader uses literal `process.env.NEXT_PUBLIC_*` references for Next's build-time replacement. The platform-neutral public schema strips unrelated server settings. The client build also permits an exact list of Vercel framework metadata names (deployment URLs, environment, region, project/deployment IDs, hash salt and documented Git metadata). These are ignored by the application schema. The build adapter maps `VERCEL_ENV` to the app environment only when `VERCEL=1`: preview → staging, production → production, development → local. Explicit app settings retain precedence; unknown deployment environments fail. The validated public environment is inlined through Next config so browser and build agree. The list includes `NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA`, documented among system variables and prefixed by the builder. Unknown public names, including secret/token names under `NEXT_PUBLIC_VERCEL_`, remain rejected. See [Vercel framework variables](https://vercel.com/docs/environment-variables/framework-environment-variables). Client/shared source must use the validated reader rather than reading environment variables elsewhere; lint checks direct environment access as well as import boundaries. This is a guardrail, not a sandbox against intentionally obfuscated code.
+
+A credential-free Vercel project can deploy the current placeholder with API/auth disabled and no origin configured. Enabling API access requires an explicit real origin; no Vercel client URL or localhost fallback is substituted. Task 01.01 must honor the API-enabled flag before transport requests.
 
 Changing public settings requires rebuilding and redistributing the web/native artifact. Never put secrets in `next.config`'s `env` or compiler replacement options. Public keys are not authorization; auth enforcement and invitation eligibility remain 01.03–01.06.
 

@@ -13,10 +13,13 @@ const localServer = {
 };
 
 describe("public configuration", () => {
-  it("requires explicit environment and API origin, even for a production build", () => {
+  it("requires an environment and an explicit origin when API access is enabled", () => {
     expect(() => validateClientEnvironment({})).toThrow();
     expect(() =>
-      validateClientEnvironment({ NEXT_PUBLIC_APP_ENV: "production" }),
+      validateClientEnvironment({
+        NEXT_PUBLIC_APP_ENV: "production",
+        NEXT_PUBLIC_API_ENABLED: "true",
+      }),
     ).toThrow();
   });
   it.each([
@@ -69,6 +72,7 @@ describe("public configuration", () => {
       NEXT_PUBLIC_VERCEL_URL: "preview.vercel.app",
       NEXT_PUBLIC_VERCEL_ENV: "preview",
       NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: "test-sha",
+      NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA: "previous-test-sha",
       NEXT_PUBLIC_VERCEL_PROJECT_ID: "test-project",
     });
     expect(result).toEqual(validateClientEnvironment(localClient));
@@ -91,6 +95,46 @@ describe("public configuration", () => {
         expect(String(error)).not.toContain("private-canary");
       }
     }
+  });
+
+  it.each([
+    ["preview", "staging"],
+    ["production", "production"],
+    ["development", "local"],
+  ])(
+    "builds an API-disabled scaffold on Vercel %s without app variables",
+    (deployment, app) => {
+      const result = validateClientEnvironment({
+        VERCEL: "1",
+        VERCEL_ENV: deployment,
+        NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA: "",
+      });
+      expect(result.NEXT_PUBLIC_APP_ENV).toBe(app);
+      expect(result.NEXT_PUBLIC_API_ENABLED).toBe(false);
+      expect(result.NEXT_PUBLIC_API_ORIGIN).toBeUndefined();
+    },
+  );
+  it("does not default unrecognized deployments or override explicit configuration", () => {
+    expect(() =>
+      validateClientEnvironment({ VERCEL: "1", VERCEL_ENV: "unknown" }),
+    ).toThrow();
+    expect(() =>
+      validateClientEnvironment({ VERCEL_ENV: "preview" }),
+    ).toThrow();
+    expect(() =>
+      validateClientEnvironment({
+        VERCEL: "1",
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_APP_ENV: "",
+      }),
+    ).toThrow();
+    expect(
+      validateClientEnvironment({
+        VERCEL: "1",
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_APP_ENV: "production",
+      }).NEXT_PUBLIC_APP_ENV,
+    ).toBe("production");
   });
 
   it("exposes only allowlisted public settings", () => {
