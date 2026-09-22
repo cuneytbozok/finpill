@@ -1,13 +1,22 @@
 "use client";
 
-import { parseAppRoute, routePath } from "@finpill/contracts";
-import { useEffect, useState } from "react";
+import { parseAppRoute } from "@finpill/contracts";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
-import { createBrowserPlatform } from "@/runtime/browser-platform";
 import { createClientApi } from "@/runtime/api";
+import { createBrowserPlatform } from "@/runtime/browser-platform";
+
+import { EmptyState, ErrorState } from "./ui-primitives";
+import {
+  getThemePreference,
+  setThemePreference,
+  subscribeThemePreference,
+} from "./theme-preference";
+import { isNavigationCurrent, navigationItems, resolveTheme } from "./ui-model";
 
 import type { AppRoute } from "@finpill/contracts";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import type { ThemePreference } from "./ui-model";
 
 function routeTitle(route: AppRoute): string {
   switch (route.kind) {
@@ -22,40 +31,23 @@ function routeTitle(route: AppRoute): string {
     case "settings":
       return "Ayarlar";
     case "company":
-      return `${route.ticker} · ${route.section}`;
+      return route.ticker;
     case "not-found":
       return "Sayfa bulunamadı";
   }
 }
 
-function RouteContent({ route }: { route: AppRoute }) {
-  if (route.kind === "not-found") {
-    return (
-      <main>
-        <h1>Sayfa bulunamadı</h1>
-        <p>Bu bağlantı Finpill’in tanımlı bir rotası değil.</p>
-      </main>
-    );
-  }
-
-  if (route.kind === "company") {
-    return (
-      <main>
-        <h1>{route.ticker}</h1>
-        <p>{route.section} bölümü hazırlanıyor.</p>
-      </main>
-    );
-  }
-
-  return (
-    <main>
-      <h1>{routeTitle(route)}</h1>
-      <p>Uygulama hazırlanıyor.</p>
-    </main>
-  );
-}
-
-function AppLink({ href, children }: { href: string; children: string }) {
+function AppLink({
+  href,
+  children,
+  className,
+  current,
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+  current?: boolean;
+}) {
   const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (
       event.defaultPrevented ||
@@ -64,49 +56,146 @@ function AppLink({ href, children }: { href: string; children: string }) {
       event.ctrlKey ||
       event.shiftKey ||
       event.altKey
-    ) {
+    )
       return;
-    }
     event.preventDefault();
     createBrowserPlatform(window).navigation.navigate(href);
   };
 
   return (
-    <a href={href} onClick={onClick}>
+    <a
+      aria-current={current ? "page" : undefined}
+      className={className}
+      href={href}
+      onClick={onClick}
+    >
       {children}
     </a>
   );
 }
 
+function Navigation({ route }: { route: AppRoute }) {
+  return navigationItems.map((item) => (
+    <AppLink
+      className="nav-link"
+      current={isNavigationCurrent(item, route)}
+      href={item.href}
+      key={item.href}
+    >
+      <span aria-hidden="true" className="nav-icon">
+        {item.icon}
+      </span>
+      <span>{item.label}</span>
+    </AppLink>
+  ));
+}
+
+function RouteContent({ route }: { route: AppRoute }) {
+  if (route.kind === "not-found") {
+    return (
+      <main className="content" id="main-content">
+        <h1 className="sr-only">Sayfa bulunamadı</h1>
+        <ErrorState
+          action={<AppLink href="/">Ana sayfaya dön</AppLink>}
+          description="Bu bağlantı Finpill’in tanımlı bir rotası değil."
+          title="Sayfa bulunamadı"
+        />
+      </main>
+    );
+  }
+
+  return (
+    <main className="content" id="main-content">
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">
+            {route.kind === "company" ? "Şirket" : "Finpill"}
+          </p>
+          <h1>{routeTitle(route)}</h1>
+          <p className="lede">Bu bölüm hazırlanıyor.</p>
+        </div>
+      </div>
+      <EmptyState
+        description="Veri kaynakları bağlandığında araştırma içeriği burada yer alacak."
+        title="Henüz gösterilecek veri yok"
+      />
+    </main>
+  );
+}
+
 export function ClientApp() {
   const [route, setRoute] = useState<AppRoute>({ kind: "home" });
+  const theme = useSyncExternalStore(
+    subscribeThemePreference,
+    getThemePreference,
+    (): ThemePreference => "system",
+  );
 
   useEffect(() => {
     const platform = createBrowserPlatform(window);
-    // Creating the transport validates the enabled public API boundary without
-    // issuing a request from the static shell.
+    // Creating the transport validates the enabled public API boundary without issuing a request.
     void createClientApi(platform);
     const update = (pathname: string) => setRoute(parseAppRoute(pathname));
     update(platform.navigation.getPathname());
     return platform.navigation.subscribe(update);
   }, []);
 
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateTheme = () => {
+      document.documentElement.dataset.theme = resolveTheme(
+        theme,
+        media.matches,
+      );
+    };
+    updateTheme();
+    media.addEventListener("change", updateTheme);
+    return () => media.removeEventListener("change", updateTheme);
+  }, [theme]);
+
   return (
-    <>
-      <nav aria-label="Ana navigasyon">
-        <AppLink href={routePath({ kind: "home" })}>Ana Sayfa</AppLink>
-        {" · "}
-        <AppLink href={routePath({ kind: "search" })}>Ara</AppLink>
-        {" · "}
-        <AppLink href={routePath({ kind: "watchlist" })}>
-          İzleme Listesi
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        İçeriğe geç
+      </a>
+      <aside className="desktop-sidebar">
+        <AppLink className="brand" href="/">
+          Fin<span className="brand-mark">pill</span>
         </AppLink>
-        {" · "}
-        <AppLink href={routePath({ kind: "ai" })}>Yapay Zekâ</AppLink>
-        {" · "}
-        <AppLink href={routePath({ kind: "settings" })}>Ayarlar</AppLink>
-      </nav>
+        <nav aria-label="Ana navigasyon">
+          <Navigation route={route} />
+        </nav>
+      </aside>
+      <header className="topbar">
+        <AppLink className="brand" href="/">
+          Fin<span className="brand-mark">pill</span>
+        </AppLink>
+        <div className="topbar-actions">
+          <AppLink className="search-shortcut" href="/search">
+            Şirket ara
+          </AppLink>
+          <label className="sr-only" htmlFor="theme">
+            Tema
+          </label>
+          <select
+            className="theme-select"
+            id="theme"
+            onChange={(event) => {
+              const preference = event.target.value as ThemePreference;
+              setThemePreference(preference);
+            }}
+            value={theme}
+          >
+            <option value="system">Sistem</option>
+            <option value="light">Açık</option>
+            <option value="dark">Koyu</option>
+          </select>
+        </div>
+      </header>
       <RouteContent route={route} />
-    </>
+      <nav aria-label="Mobil ana navigasyon" className="mobile-nav">
+        <Navigation route={route} />
+      </nav>
+    </div>
   );
 }
