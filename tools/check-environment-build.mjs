@@ -22,6 +22,7 @@ const env = {
   ...process.env,
   ...canaries,
   NEXT_TELEMETRY_DISABLED: "1",
+  NEXT_PUBLIC_VERCEL_OBSERVABILITY_CLIENT_CONFIG: '{"sampleRate":0}',
   NEXT_PUBLIC_VERCEL_ENV: "preview",
   NEXT_PUBLIC_VERCEL_URL: "finpill-build-check.vercel.app",
   NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: "test-build-sha",

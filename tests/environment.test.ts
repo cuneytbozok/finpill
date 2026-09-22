@@ -74,6 +74,7 @@ describe("public configuration", () => {
       NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: "test-sha",
       NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA: "previous-test-sha",
       NEXT_PUBLIC_VERCEL_PROJECT_ID: "test-project",
+      NEXT_PUBLIC_VERCEL_OBSERVABILITY_CLIENT_CONFIG: '{"sampleRate":0}',
     });
     expect(result).toEqual(validateClientEnvironment(localClient));
   });
