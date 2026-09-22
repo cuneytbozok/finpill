@@ -288,7 +288,8 @@ The first Vercel preview for `8aa2e76` failed before installation because the ma
 - Reproduced the original `EBADDEVENGINES` with official checksum-verified Node 24.19.0 and bundled npm 11.17.0. The corrected manifest installs; unsupported Node 25 still fails.
 - Clean installation and the full check command pass on Node 24.19.0/npm 11.17.0; the full check also passes on the local reference Node 24.21.0/npm 11.19.0. Both runs include 23 tests and both production builds.
 - This supersedes the earlier exact-patch rejection policy in the historical 00.02 handoff. Exact local references and supported hosted-runtime ranges serve different purposes.
-- Hosted verification is pending the new preview. The Vercel connector reports no authorization for the project's team; GitHub deployment status remains available.
+- The next preview passed the installation/build stage but failed because Vercel expected `public` (owner-provided build error). Added root `vercel.json` selecting the client build and `apps/client/out` explicitly, with frozen installation. The project's Root Directory must remain the repository root. The API stays a separate deployment target.
+- Hosted verification of the output-directory correction remains pending. The Vercel connector reports no authorization for the project's team; GitHub deployment status remains available.
 
 ### Next-task readiness and parallel ownership
 
