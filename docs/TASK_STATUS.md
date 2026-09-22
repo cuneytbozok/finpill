@@ -8,7 +8,7 @@
 **Application implementation:** Static client/API scaffold only; product features are not implemented.
 
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
-**Last updated:** 2026-09-21.
+**Last updated:** 2026-09-22.
 
 ## Status convention
 
@@ -278,6 +278,17 @@ GitHub ownership and repository access are confirmed. Other service access, nati
 - React review: semantic root/main/heading, Turkish document language, no data-fetch waterfalls, effects, global mutable state or unnecessary dependencies in the placeholder.
 - Documentation links, all three locked workspaces and absence of nested lockfiles verified. Blueprint remains byte-for-byte unchanged.
 - CI, native builds, authenticated services and financial outputs were not tested because they do not exist in this task.
+
+### Vercel installation correction — 2026-09-22
+
+The first Vercel preview for `8aa2e76` failed before installation because the manifest required Node 24.21.0 while Vercel supplied 24.19.0. Vercel supports selection by major version and manages minor/patch updates.
+
+- Keep the exact local Node version files and npm `packageManager` reference; allow `24.x` and `11.x` consistently in `engines`, `devEngines` and lockfile metadata.
+- Retain strict engine enforcement and exact dependency/lockfile versions. No force flags or deployment-specific bypass were added.
+- Reproduced the original `EBADDEVENGINES` with official checksum-verified Node 24.19.0 and bundled npm 11.17.0. The corrected manifest installs; unsupported Node 25 still fails.
+- Clean installation and the full check command pass on Node 24.19.0/npm 11.17.0; the full check also passes on the local reference Node 24.21.0/npm 11.19.0. Both runs include 23 tests and both production builds.
+- This supersedes the earlier exact-patch rejection policy in the historical 00.02 handoff. Exact local references and supported hosted-runtime ranges serve different purposes.
+- Hosted verification is pending the new preview. The Vercel connector reports no authorization for the project's team; GitHub deployment status remains available.
 
 ### Next-task readiness and parallel ownership
 

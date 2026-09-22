@@ -36,18 +36,18 @@
   },
   "packageManager": "npm@11.19.0",
   "engines": {
-    "node": "24.21.0",
-    "npm": "11.19.0"
+    "node": "24.x",
+    "npm": "11.x"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "24.21.0",
+      "version": "24.x",
       "onFail": "error"
     },
     "packageManager": {
       "name": "npm",
-      "version": "11.19.0",
+      "version": "11.x",
       "onFail": "error"
     }
   }
