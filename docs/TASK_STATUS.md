@@ -3,7 +3,7 @@
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
 **Current task:** 00.06 — Access register for external prerequisites.
 
-**State:** complete — access ownership and evidence are explicitly recorded; no external access is assumed.
+**State:** in_review — access ownership and evidence are explicitly recorded; no external access is assumed and PR review remains.
 
 **Application implementation:** Static client/API scaffold only; product features are not implemented.
 
@@ -36,7 +36,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 00.03 | complete | See task 00.03 handoff below. |
 | 00.04 | complete | PR #3 merged as `bd491ac85dded7f41760e783131a20d3da57eeed`; verified from GitHub and fetched locally. |
 | 00.05 | complete | PR #4 merged as `0febc76`; confirmed from fetched `origin/main`. |
-| 00.06 | complete | [Access register](ACCESS_REGISTER.md) records each prerequisite owner, environment/status, evidence, and consuming-task gate without secrets. See handoff. |
+| 00.06 | in_review | [Access register](ACCESS_REGISTER.md) records each prerequisite owner, environment/status, evidence, and consuming-task gate without secrets. Branch is published; PR review remains. See handoff. |
 
 ### Phase 01 — Production web/native foundation, authentication, and design system
 
@@ -379,4 +379,5 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Confirmed evidence is deliberately narrow: the public GitHub repository and merged PRs, disposable local Supabase CI replay, and credential-free static Vercel preview. Hosted service access, production origins, identities, data rights, fixtures, and signing identities are unconfirmed rather than guessed.
 - Verification: internal document links resolve; register contains no credential-shaped values; task scope remains documentation only. Application lint, typecheck, tests and builds are unchanged by this task and were not rerun as task evidence.
 - No service account, secret, domain, fixture, migration, provider selection, or architecture gate was created or accepted. The blueprint remains unchanged.
+- Publication: branch `codex/00.06-access-register` was pushed to `origin`. GitHub CLI is not authenticated in this environment, so a PR has not been opened yet.
 - Next ready task in roadmap order: **01.01 — Static client entry, shared route registry, API transport, `AuthPort` and platform interfaces**. Its web/API implementation may begin, but native/auth and service-access gates remain unaccepted; select it in a new isolated implementation session.
