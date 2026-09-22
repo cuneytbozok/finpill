@@ -1,14 +1,14 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.01 — Static client entry and shared runtime interfaces.
+**Current task:** 01.02 — Capacitor iOS/Android shells and bundled-asset proof.
 
-**State:** in_review — routing and transport contracts are implemented; PR review remains.
+**State:** ready — local application IDs and signing approach are owner-confirmed; native implementation and acceptance have not started.
 
 **Application implementation:** Static client route shell, shared runtime interfaces, and API scaffold; product features are not implemented.
 
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
-**Last updated:** 2026-09-22.
+**Last updated:** 2026-09-23.
 
 ## Status convention
 
@@ -42,14 +42,14 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 
 | Task | State | Evidence / handoff |
 |---|---|---|
-| 01.01 | in_review | Shared static client routing, transport, and platform contracts implemented and locally verified; PR review remains. See handoff. |
-| 01.02 | pending | — |
+| 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
+| 01.02 | ready | Owner confirmed both `com.cuneytbozok.finpill` IDs and local development signing; store enrollment is not a 01.02 prerequisite. Native proof remains unstarted. See readiness reassessment below. |
 | 01.03 | pending | — |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | pending | — |
+| 01.08 | in_review | [Draft PR #8](https://github.com/cuneytbozok/finpill/pull/8) is open and unmerged; native acceptance remains after 01.02. Its branch carries the detailed handoff. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -394,3 +394,12 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Browser verification: the local static shell visibly rendered its navigation and content, and client navigation from home to `/search` worked without an error overlay. [Hosted Vercel preview](https://finpill-git-codex-0101-runtime-8acf64-cuneyts-projects-ec980692.vercel.app/company/XYZ.123/ratios) loaded an arbitrary ticker route directly and after browser refresh; `/unknown` rendered the app's not-found state. The initial static HTML briefly displays the home placeholder before route hydration. No Capacitor shell, Clerk adapter, real API endpoint, or authentication flow is claimed verified.
 - No migration, financial calculation, service credential, RLS behavior, or architecture gate was added or accepted. A01–A03 remain draft/unaccepted.
 - Next-task handoff: after 01.01 review/merge, select the first eligible Phase 01 task. 01.02 and 01.03 depend on the now-merged 00.06 access register; consuming tasks must still verify their specific external prerequisites. Do not start dependent work before verifying the final merged ledger and external-access state.
+
+## Task 01.02 readiness reassessment — 2026-09-23
+
+- Owner: project owner supplied the private-use application identity and local signing decision; Codex reconciled the task prerequisites. Base for this documentation update: `32fccfc`, fetched `origin/main`.
+- Decision: both iOS bundle ID and Android application ID are `com.cuneytbozok.finpill`. Local Xcode/Personal Team development signing and Android development/debug signing are permitted when needed for simulator, emulator or personal-device testing.
+- Readiness: 01.01 and 00.06 are merged. The 01.02 acceptance criteria require release-mode bundled assets, cold starts and artifact inspection, but do not require App Store Connect, Google Play Console, paid Apple Developer Program enrollment or production signing. [Apple documents Personal Team testing on owned devices](https://developer.apple.com/help/account/basics/about-your-developer-account), and [Android Studio creates debug signing material for local runs](https://developer.android.com/studio/publish/app-signing). The requirement to prove production-style asset delivery is retained. Task 01.02 is ready to implement, not accepted.
+- Deferred access: production certificates, production keystore custody and store account ownership are external prerequisites only if a later deployment/distribution method needs them. Reassess at 01.09/10.07; store publication remains a separate post-MVP gate. See the updated [access register](ACCESS_REGISTER.md).
+- Verification: compared the approved 01.02 roadmap row with owner-provided identifiers and official Capacitor, Apple and Android local-run/signing guidance. No native project, build, simulator, device, secret, migration or architecture gate was created or verified by this documentation update.
+- Next action: start 01.02 in a new isolated implementation worktree from verified `origin/main` after this readiness correction merges. Preserve 01.08's draft review state; its native acceptance can follow the 01.02 shell proof. Clerk instance access remains a separate 01.03 prerequisite.
