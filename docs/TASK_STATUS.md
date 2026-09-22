@@ -305,7 +305,7 @@ After PR review and merge, mark 00.03 complete. Tasks **00.04 — Environment sc
 - Base commit: `9e2e9ffb920536a41be07d2b9785ed8f61bd197f`, merged PR #2, verified against GitHub and fetched locally.
 - Worktree: `/Users/cuneytbozok/Documents/Projeler/Finpill/.worktrees/00.04`.
 - Branch: `codex/00.04-environment-validation`.
-- Implementation: consolidated task commit on the branch above; PR link follows publication.
+- Implementation commit: `d3bf1ff`; PR [#3 — Validate public and server environment configuration](https://github.com/cuneytbozok/finpill/pull/3), opened and attached to the Codex task. Review and merge remain.
 - Publication explicitly approved by the owner on 2026-09-22. GitHub initially flagged a fixed fake secret canary; test values now generate at runtime. Unpublished commits were consolidated to remove the flagged literal; no published history was rewritten.
 - Scope: environment validation, credential-free examples, environment matrix, tested public/server boundaries and draft A03. No service provisioning, provider calls, migrations, financial changes or blueprint rewrite.
 
@@ -327,6 +327,7 @@ After PR review and merge, mark 00.03 complete. Tasks **00.04 — Environment sc
 - Blueprint SHA-256 remains `221d658915a46afdfe7983f908715a0c710c12e666068d974fd1de7941f22008`.
 - Context7 consulted for Next/Zod/Supabase configuration; current Supabase changelog and key guidance reviewed. No live service, hosted deployment, native build, authorization or RLS validation is claimed.
 - Fresh clone of `729f56e`: frozen offline installation, full `npm run check`, and `npm run test:environment-build` passed; lockfile and tracked tree remained unchanged. No service `.env` files were copied.
+- After replacing fixed fake canaries with runtime-generated test values, full checks (55 tests and both builds) and the build/runtime artifact scan passed again. GitHub accepted the consolidated branch without a push-protection bypass.
 - Changed-document links resolve; final diff whitespace check passed.
 
 ### Next-task handoff
