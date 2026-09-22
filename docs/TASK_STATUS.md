@@ -3,7 +3,7 @@
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
 **Current task:** 00.05 — Local database, disposable migration replay and initial CI.
 
-**State:** in_review — laptop Docker replay is deliberately deferred; GitHub Actions database replay is the required acceptance evidence.
+**State:** in_review — implementation and required GitHub Actions database replay have passed; PR #4 awaits acceptance and merge.
 
 **Application implementation:** Static client/API scaffold only; product features are not implemented.
 
@@ -35,7 +35,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 00.02 | complete | PR #1 merged as `2f9dd0464eb24defdebdd0576cde513c1057c1a2`; confirmed from GitHub and fetched Git history. |
 | 00.03 | complete | See task 00.03 handoff below. |
 | 00.04 | complete | PR #3 merged as `bd491ac85dded7f41760e783131a20d3da57eeed`; verified from GitHub and fetched locally. |
-| 00.05 | in_review | Local implementation verified; laptop Docker deferred by owner. Awaiting real GitHub Actions database evidence. See handoff. |
+| 00.05 | in_review | Required GitHub Actions quality and disposable database replay passed; laptop Docker remains deferred by owner. PR #4 awaits acceptance/merge. See handoff. |
 | 00.06 | ready | Independent access-register task; no service access assumed. |
 
 ### Phase 01 — Production web/native foundation, authentication, and design system
@@ -366,6 +366,6 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Owner decision (2026-09-22): local Docker is deferred. `npm run db:test` therefore remains unavailable on the laptop by design; the hosted GitHub Actions Docker runner is the required migration replay evidence before completion.
 - Verification: full `npm run check` passed (formatting, zero-warning lint, strict typecheck, 68 tests, both builds). Frozen offline `npm ci` and real environment build/runtime smoke passed; all 21 static export files remain free of secret canaries. Document links/diff whitespace checks pass and blueprint SHA-256 is unchanged.
 - PR/publication: [PR #4](https://github.com/cuneytbozok/finpill/pull/4) is open. Owner authorized publication on 2026-09-22 so that hosted database acceptance can run.
-- First hosted run: [quality passed](https://github.com/cuneytbozok/finpill/actions/runs/35762529841/job/106863852613). The database replay applied the baseline twice and passed all five pgTAP checks, then failed while a test probe assumed a generated Docker container name. The runner now uses the CLI's explicit `supabase db query --local` instead; rerun evidence remains required.
-- Database acceptance remains pending: inspect the rerun `quality` and `database` CI jobs, record the real migration/pgTAP result before marking ready for review. Do not infer database success from unit tests.
+- First hosted run: [quality passed](https://github.com/cuneytbozok/finpill/actions/runs/35762529841/job/106863852613). The database replay applied the baseline twice and passed all five pgTAP checks, then failed while a test probe assumed a generated Docker container name. The runner now uses the CLI's explicit `supabase db query --local` instead.
+- Hosted acceptance passed on [CI run #2](https://github.com/cuneytbozok/finpill/actions/runs/35763173280): [quality](https://github.com/cuneytbozok/finpill/actions/runs/35763173280/job/106866037121) passed `npm run check`, environment smoke and generated-file verification; [database](https://github.com/cuneytbozok/finpill/actions/runs/35763173280/job/106866037487) passed the disposable `npm run db:test` migration replays, CLI probe, resets and pgTAP checks. PR review and merge are the only remaining step.
 - Next ready tasks after review: 00.06 access register and 01.01 runtime interfaces. Select one per session; use an isolated worktree and respect remaining architecture gates.
