@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.08 — Turkish design system and responsive shell.
+**Current task:** 01.02 — Capacitor iOS/Android shells and bundled-asset proof.
 
-**State:** in_review — web shell implementation and checks pass; native acceptance awaits the 01.02 shells and review.
+**State:** ready — local application IDs and signing approach are owner-confirmed; native implementation and acceptance have not started.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -43,13 +43,13 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | Task | State | Evidence / handoff |
 |---|---|---|
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
-| 01.02 | pending | Apple/Android signing ownership and app identifiers remain unconfirmed in the access register; native proof is still required. |
-| 01.03 | pending | Clerk test/pilot instance, invitation policy and issuer remain unconfirmed in the access register. |
+| 01.02 | ready | Owner confirmed both `com.cuneytbozok.finpill` IDs and local development signing; store enrollment is not a 01.02 prerequisite. Native proof remains unstarted. See readiness reassessment below. |
+| 01.03 | pending | — |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | in_review | Responsive web shell, theme and reusable state primitives implemented and locally verified; native check remains. See handoff. |
+| 01.08 | in_review | [Draft PR #8](https://github.com/cuneytbozok/finpill/pull/8) is open and unmerged; native acceptance remains after 01.02. Its branch carries the detailed handoff. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -395,14 +395,12 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - No migration, financial calculation, service credential, RLS behavior, or architecture gate was added or accepted. A01–A03 remain draft/unaccepted.
 - Next-task handoff: after 01.01 review/merge, select the first eligible Phase 01 task. 01.02 and 01.03 depend on the now-merged 00.06 access register; consuming tasks must still verify their specific external prerequisites. Do not start dependent work before verifying the final merged ledger and external-access state.
 
-## Task 01.08 handoff
+## Task 01.02 readiness reassessment — 2026-09-23
 
-- Owner: Codex, sole owner of the client design tokens, responsive shell, theme behavior and UI state primitives.
-- Base: `9e2185b`, merged PR #7, verified from fetched `origin/main`. The 01.01 ledger row was stale and is corrected above.
-- Worktree: `/Users/cuneytbozok/.codex/worktrees/01-08-design-system/Finpill`; branch `codex/01.08-design-system`. Implementation commit `e4911e7`; [draft PR #8](https://github.com/cuneytbozok/finpill/pull/8) is open for review.
-- Deliverables: Turkish five-destination mobile navigation and matching desktop sidebar, global search shortcut, system/light/dark theme preference, semantic light/dark tokens, safe-area spacing, keyboard focus and skip link, reduced-motion styling, and reusable loading/empty/error/stale primitives. The shell remains data-free.
-- Verification: pinned Node 24/npm 11 `npm run check` passed with formatting, lint, strict types, 88 tests and both production builds. Browser inspection at 390px verified five mobile destinations, no horizontal overflow, no framework overlay or console errors, navigation to `/search`, and a theme selection surviving a home-route reload. The desktop sidebar rendered at the default 794px viewport. The preferred `agent-browser` CLI was unavailable; the in-app browser was used instead.
-- Hosted status: GitHub reports Vercel `success` for implementation commit `e4911e7` ([deployment](https://vercel.com/cuneyts-projects-ec980692/finpill/2iNjyYG8MPbrnkb11vZnmr2tyatC)). The [preview](https://finpill-git-codex-0108-design-system-cuneyts-projects-ec980692.vercel.app) requires Vercel sign-in, so a manual hosted route check was unavailable. [CI run #14](https://github.com/cuneytbozok/finpill/actions/runs/35794616495) passed both quality and database jobs on `ace7123`; this evidence-only handoff update follows that run.
-- Remaining acceptance: iOS/Android safe-area and native-shell checks cannot run until task 01.02 provides shells. The local Next development server returns 404 on direct `/search` refresh; the static-host fallback is configured and was verified for 01.01 on Vercel. Recheck the new shell on an authorized hosted preview before treating direct-route refresh as 01.08 evidence. No native, Clerk, data-source or architecture-gate validation is claimed.
-- Changed contracts/migrations: no API contract or migration changes. `ui-model.ts` centralizes nav items and theme resolution, `theme-preference.ts` persists user choice, and `ui-primitives.tsx` exposes reusable state components.
-- Next selection: 01.02 and 01.03 remain first in roadmap order once their respective access prerequisites are confirmed. If they remain unavailable, 01.08 review/native acceptance can continue after 01.02, and later tasks should be evaluated against their own dependencies and gates.
+- Owner: project owner supplied the private-use application identity and local signing decision; Codex reconciled the task prerequisites. Base for this documentation update: `32fccfc`, fetched `origin/main`.
+- Decision: both iOS bundle ID and Android application ID are `com.cuneytbozok.finpill`. Local Xcode/Personal Team development signing and Android development/debug signing are permitted when needed for simulator, emulator or personal-device testing.
+- Readiness: 01.01 and 00.06 are merged. The 01.02 acceptance criteria require release-mode bundled assets, cold starts and artifact inspection, but do not require App Store Connect, Google Play Console, paid Apple Developer Program enrollment or production signing. [Apple documents Personal Team testing on owned devices](https://developer.apple.com/help/account/basics/about-your-developer-account), and [Android Studio creates debug signing material for local runs](https://developer.android.com/studio/publish/app-signing). The requirement to prove production-style asset delivery is retained. Task 01.02 is ready to implement, not accepted.
+- Deferred access: production certificates, production keystore custody and store account ownership are external prerequisites only if a later deployment/distribution method needs them. Reassess at 01.09/10.07; store publication remains a separate post-MVP gate. See the updated [access register](ACCESS_REGISTER.md).
+- Roadmap clarification: the private-use signing/store rule is explicit in [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md) without changing task 01.02's deliverables or acceptance checks.
+- Verification: compared the approved 01.02 roadmap row with owner-provided identifiers and official Capacitor, Apple and Android local-run/signing guidance. No native project, build, simulator, device, secret, migration or architecture gate was created or verified by this documentation update.
+- Next action: start 01.02 in a new isolated implementation worktree from verified `origin/main` after this readiness correction merges. Preserve 01.08's draft review state; its native acceptance can follow the 01.02 shell proof. Clerk instance access remains a separate 01.03 prerequisite.

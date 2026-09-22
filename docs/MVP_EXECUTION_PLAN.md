@@ -205,6 +205,8 @@ Every code task includes lint, typecheck, relevant tests, and review. Additional
 
 **Why now:** Asset delivery, routing, authentication, secrets, and authorization cannot safely be retrofitted after screens and user-specific features exist.
 
+**Private-use mobile path:** The owner is installing and testing the app personally, with no near-term App Store or Google Play publication. Task 01.02 may use local Xcode/Personal Team development signing and Android development/debug signing where needed. Apple Developer Program enrollment, App Store Connect, Google Play Console, production certificates and production keystore custody are not prerequisites for 01.02 unless its actual acceptance test technically needs them. The bundled-asset, release-mode configuration, cold-start and artifact checks below still apply. Reassess production signing/store ownership only when a later distribution method requires it; store publication remains a separate release gate. The confirmed app IDs and deferred prerequisites are in [ACCESS_REGISTER.md](ACCESS_REGISTER.md).
+
 | ID | Dependencies | Deliverables | Acceptance criteria and required tests |
 |---|---|---|---|
 | **01.01** | 00.03, 00.04 | Static client entry, shared route registry, API transport, `AuthPort` and platform interfaces. | Canonical blueprint URLs work without enumerating tickers at build time. API errors and token acquisition are centralized. **C/E:** arbitrary ticker route, refresh, unknown route, transport failure. |
