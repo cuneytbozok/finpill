@@ -18,6 +18,9 @@ async function boundaryErrors(code, filePath = client) {
 describe("browser/server import boundary", () => {
   it.each([
     'import "node:fs";',
+    "void process.env.KAP_API_SECRET;",
+    "const env = process.env;",
+    'void process["env"];',
     'import "fs/promises";',
     'import "server-only";',
     'import "next/headers";',

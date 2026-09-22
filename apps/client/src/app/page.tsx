@@ -1,5 +1,9 @@
 "use client";
 
+import { publicEnvironment } from "../config/environment";
+
+void publicEnvironment;
+
 export default function HomePage() {
   return (
     <main>

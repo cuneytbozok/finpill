@@ -16,6 +16,8 @@ export const browserBoundary = {
     },
     schema: [],
     messages: {
+      environment:
+        "Read environment through the validated public configuration module.",
       server:
         "Server-only import '{{name}}' is forbidden in client/shared code.",
       outside: "Import '{{name}}' crosses the allowed workspace boundary.",
@@ -79,6 +81,17 @@ export const browserBoundary = {
     }
 
     return {
+      MemberExpression(node) {
+        const object = node.object;
+        if (
+          object.type === "Identifier" &&
+          object.name === "process" &&
+          ((!node.computed && node.property.name === "env") || node.computed)
+        ) {
+          if (!normalized.endsWith("/apps/client/src/config/environment.ts"))
+            context.report({ node, messageId: "environment" });
+        }
+      },
       ImportDeclaration(node) {
         check(node, node.source);
       },
