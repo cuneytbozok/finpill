@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 00.04 — Zod environment schemas and environment matrix.
+**Current task:** 00.05 — Local database, disposable migration replay and initial CI.
 
-**State:** in_review — clean-install checks and environment smoke passed; PR review and merge remain.
+**State:** in_review — implementation and required GitHub Actions database replay have passed; PR #4 awaits acceptance and merge.
 
 **Application implementation:** Static client/API scaffold only; product features are not implemented.
 
@@ -34,15 +34,15 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 00.01 | complete | Baseline commit `da542dea080e124a927f13b57fa633b3cb572380` on `main`; historical handoff below. |
 | 00.02 | complete | PR #1 merged as `2f9dd0464eb24defdebdd0576cde513c1057c1a2`; confirmed from GitHub and fetched Git history. |
 | 00.03 | complete | See task 00.03 handoff below. |
-| 00.04 | in_review | Isolated `codex/00.04-environment-validation` worktree; handoff below. |
-| 00.05 | ready | Prerequisite 00.03 merged in PR #2; database/CI ownership remains separate. |
+| 00.04 | complete | PR #3 merged as `bd491ac85dded7f41760e783131a20d3da57eeed`; verified from GitHub and fetched locally. |
+| 00.05 | in_review | Required GitHub Actions quality and disposable database replay passed; laptop Docker remains deferred by owner. PR #4 awaits acceptance/merge. See handoff. |
 | 00.06 | ready | Independent access-register task; no service access assumed. |
 
 ### Phase 01 — Production web/native foundation, authentication, and design system
 
 | Task | State | Evidence / handoff |
 |---|---|---|
-| 01.01 | pending | — |
+| 01.01 | ready | 00.03/00.04 merged; native/auth gates remain unaccepted. |
 | 01.02 | pending | — |
 | 01.03 | pending | — |
 | 01.04 | pending | — |
@@ -354,3 +354,18 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Verification: full check passed with 61 tests, strict types, lint, formatting and both production builds; the expanded zero-manual-variable Vercel scaffold build and secret-canary/runtime smoke passed.
 - The diagnostic hosted log for `3156c70` identified `NEXT_PUBLIC_VERCEL_OBSERVABILITY_CLIENT_CONFIG` as the remaining rejected name. Added that exact platform setting, kept it outside parsed app configuration, and included it in unit and zero-manual-variable build smoke fixtures. Full checks (61 tests and both builds), runtime smoke and all 21 artifact scans passed again. This resolves the identified code defect; hosted verification follows the new commit.
 - Hosted verification passed: GitHub's Vercel status for implementation commit `007e74778b20ceaa4efbafe057bb1e9b225f626e` is `success`; [successful deployment](https://vercel.com/cuneyts-projects-ec980692/finpill/936WnTnEajTKaSNfYvASswGDNRCf). The configuration-load build failure is resolved without manually configured project variables. Task 00.04 remains in review pending PR acceptance/merge.
+
+
+## Task 00.05 handoff
+
+- Owner: Codex, sole owner of task 00.05 configuration, migration baseline, root dependency/lockfile and workflow changes.
+- Base: `bd491ac85dded7f41760e783131a20d3da57eeed`, merged PR #3, verified from GitHub and fetched locally.
+- Worktree: `/Users/cuneytbozok/Documents/Projeler/Finpill/.worktrees/00.05`; branch `codex/00.05-database-ci`.
+- Deliverables: pinned Supabase CLI, local Postgres configuration, CLI-generated no-domain-schema baseline migration, pgTAP checks, isolated replay runner with target guard tests, two-job CI and [database development guide](DATABASE_DEVELOPMENT.md).
+- No product schema, provider access, secret, hosted project or architecture gate is introduced. A03 remains draft; blueprint unchanged.
+- Owner decision (2026-09-22): local Docker is deferred. `npm run db:test` therefore remains unavailable on the laptop by design; the hosted GitHub Actions Docker runner is the required migration replay evidence before completion.
+- Verification: full `npm run check` passed (formatting, zero-warning lint, strict typecheck, 68 tests, both builds). Frozen offline `npm ci` and real environment build/runtime smoke passed; all 21 static export files remain free of secret canaries. Document links/diff whitespace checks pass and blueprint SHA-256 is unchanged.
+- PR/publication: [PR #4](https://github.com/cuneytbozok/finpill/pull/4) is open. Owner authorized publication on 2026-09-22 so that hosted database acceptance can run.
+- First hosted run: [quality passed](https://github.com/cuneytbozok/finpill/actions/runs/35762529841/job/106863852613). The database replay applied the baseline twice and passed all five pgTAP checks, then failed while a test probe assumed a generated Docker container name. The runner now uses the CLI's explicit `supabase db query --local` instead.
+- Hosted acceptance passed on [CI run #2](https://github.com/cuneytbozok/finpill/actions/runs/35763173280): [quality](https://github.com/cuneytbozok/finpill/actions/runs/35763173280/job/106866037121) passed `npm run check`, environment smoke and generated-file verification; [database](https://github.com/cuneytbozok/finpill/actions/runs/35763173280/job/106866037487) passed the disposable `npm run db:test` migration replays, CLI probe, resets and pgTAP checks. PR review and merge are the only remaining step.
+- Next ready tasks after review: 00.06 access register and 01.01 runtime interfaces. Select one per session; use an isolated worktree and respect remaining architecture gates.

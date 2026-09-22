@@ -66,6 +66,6 @@ The root `vercel.json` deploys the static client only: frozen installation with 
 
 The API needs a separate Vercel project rooted at `apps/api`, using the Next.js preset and access to shared workspace files. Do not point that project at the root client configuration or deploy `apps/api/.next` as static files. Coordinated deployments and environment isolation remain task 01.09. This preview configuration does not establish native routing, authentication, or API deployment readiness.
 
-Task 00.04 owns validated environment configuration. Task 00.05 owns local database setup and CI. Task 01.01 owns API transport and shared route/platform interfaces; tasks 01.02–01.10 prove native/auth deployment behavior. This placeholder page is not a product screen, and the static build alone does not prove Capacitor routing or authentication.
+Task 00.04 owns validated environment configuration. Task 00.05 adds [local database setup and CI](DATABASE_DEVELOPMENT.md). Task 01.01 owns API transport and shared route/platform interfaces; tasks 01.02–01.10 prove native/auth deployment behavior. This placeholder page is not a product screen, and the static build alone does not prove Capacitor routing or authentication.
 
 Parallel worktrees must use distinct development ports when running the same app simultaneously. Files are isolated; host ports and external services are not. Coordinate changes to root dependencies, contracts and shared configuration before merging.
