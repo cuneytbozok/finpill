@@ -1,6 +1,6 @@
 # Contributing
 
-Read [AGENTS.md](AGENTS.md), the [roadmap](docs/MVP_EXECUTION_PLAN.md), the [task ledger](docs/TASK_STATUS.md), relevant blueprint sections and accepted ADRs before starting. Use Context7 for library/API documentation and setup.
+Read [AGENTS.md](AGENTS.md) first. Follow its task-selection and context-loading rules, then read only the selected task's relevant roadmap, handoff, blueprint and ADR context before starting.
 
 ## Branches and worktrees
 

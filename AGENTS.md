@@ -2,12 +2,48 @@
 
 ## Read first and document authority
 
-- Read `docs/PROJECT_BLUEPRINT.md` before architectural changes.
-- Read `docs/MVP_EXECUTION_PLAN.md`, `docs/TASK_STATUS.md`, relevant accepted ADRs, and the predecessor handoff before implementation.
+- `origin/main` is the canonical merged integration state. A local checkout, local `main`, or local `TASK_STATUS.md` may be stale or dirty and must not be used as authoritative task state without reconciliation.
+
+- Before implementation:
+
+  ### Task discovery
+
+  1. Fetch and prune `origin` before selecting a task.
+  2. Determine the canonical task state from `docs/TASK_STATUS.md` on `origin/main`, preferably without modifying the current checkout.
+  3. Do not reset, clean, fast-forward, switch, or otherwise modify the user's existing checkout during task discovery.
+  4. If the canonical ledger shows a task as `in_progress` or `in_review`, inspect only the relevant task branch/PR state needed to reconcile its actual status.
+  5. If repository/PR evidence shows that a ledger state is stale, use the verified repository/PR state for task selection and preserve the discrepancy for correction in the next safe documentation update.
+  6. If an actionable task is already `in_progress`, continue that task from its existing branch/worktree.
+  7. If a task is `in_review`, continue it only when there is actionable unresolved review or acceptance work that can be completed in this session. If it is merely awaiting review/merge and does not block later work, leave it in review and continue task selection.
+  8. Otherwise select the first `ready` task in roadmap order whose dependencies and required architecture gates are satisfied.
+  9. If the remote state cannot be verified, do not start a new task based only on potentially stale local state. Report the verification failure instead.
+  10. Do not load task-specific skills, Context7, external documentation, implementation files, or create a new worktree until task selection is complete.
+
+  ### Selected-task context
+
+  11. After selecting the task, read only:
+      - the selected task's definition and directly relevant dependency context in `docs/MVP_EXECUTION_PLAN.md`,
+      - the selected task's current/predecessor handoff in `docs/TASK_STATUS.md`,
+      - explicitly referenced ADRs,
+      - relevant `PROJECT_BLUEPRINT.md` sections when architectural or product context is required.
+  12. Use targeted searches and line/range reads for long documents. Do not dump entire roadmap, ledger, blueprint, ADR, or log files into context when only a section is needed.
+  13. Do not read unrelated historical handoffs, roadmap phases, ADRs, or blueprint sections.
+  14. Read `docs/PROJECT_BLUEPRINT.md` only when the selected task requires architectural/product context or an architectural change.
+
+  ### Execution
+
+  15. For a new task, create its isolated worktree/branch from the verified `origin/main` base unless the roadmap explicitly requires another base.
+  16. For an existing `in_progress` task, reuse its existing task branch/worktree rather than creating duplicate work.
+  17. Work on one task only per implementation session.
+  18. Implement only the selected task's scope and required acceptance work.
+  19. Verify the task using its required checks and record actual evidence.
+  20. Update `docs/TASK_STATUS.md` with the resulting state, evidence, blockers, commit/PR information, and next-task handoff.
+  21. After verification and handoff, stop. Do not start another task in the same session.
+
 - `docs/MVP_EXECUTION_PLAN.md` is the approved execution roadmap. Its task order supersedes the original sequence in blueprint §§37–39 and §§50–51; this does not silently change product scope.
 - Approved product-owner decisions and required blueprint corrections are recorded in the roadmap and `docs/BLUEPRINT_CORRECTIONS.md`. Keep the blueprint unchanged until its correction is deliberately included in an authorized documentation change.
 - An approved roadmap direction is not evidence that an architecture gate has passed. Accept ADRs only after their required evidence exists.
-- Always use Context7 MCP when library/API documentation, code generation, setup, or configuration steps are needed, without waiting for the user to ask. If unavailable, state that limitation rather than claiming verification.
+- Use Context7 only when the task materially depends on unverified or version-specific external library/API behavior, setup, or configuration. Reuse documentation already retrieved for the current task, request only the minimum relevant documentation, and do not use it for routine code generation or repository-established behavior. If required verification is unavailable, state that explicitly.
 
 ## Architecture
 
@@ -59,7 +95,7 @@
 - Every database schema change must use a migration; external API responses require runtime validation.
 - Do not silently change architecture.
 - If an architectural decision conflicts with the blueprint, document it as an ADR.
-- Select one ready task per implementation session, verify its dependencies and gates, and update `docs/TASK_STATUS.md` with evidence and the next-task handoff.
+- Follow the task-discovery, context-loading, and single-task execution protocol above; keep `docs/TASK_STATUS.md` synchronized with verified evidence and handoffs.
 - Use an isolated worktree/branch per independent task once Git exists. Coordinate shared contracts, migrations, routing, and root dependencies through one owner.
 - Bootstrap exception: task 00.01 precedes Git initialization. Carry its verified documentation into the initial repository history in task 00.02; do not claim a commit or PR exists before it does.
 - Keep secrets out of commits, logs, fixtures, client bundles, and handoffs.
