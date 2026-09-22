@@ -1,0 +1,11 @@
+node_modules/
+**/.next/
+**/out/
+**/next-env.d.ts
+package-lock.json
+coverage/
+# Preserve approved historical documents; format new task-owned files explicitly.
+AGENTS.md
+CONTRIBUTING.md
+README.md
+docs/

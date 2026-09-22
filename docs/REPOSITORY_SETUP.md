@@ -2,14 +2,16 @@
 
 The owner-confirmed repository is [cuneytbozok/finpill](https://github.com/cuneytbozok/finpill), with `main` as the integration branch. It was empty before the approved roadmap baseline was pushed. The repository is public; the product release remains a private pilot.
 
-## Pinned toolchain
+## Reference toolchain and supported runtime
 
-| Tool | Required version | Enforcement |
+| Tool | Local reference | Supported installation/runtime range |
 |---|---|---|
-| Node.js | 24.21.0 (24 LTS) | `.nvmrc`, `.node-version`, package `engines` and `devEngines` |
-| npm | 11.19.0 | `packageManager`, `engines`, `devEngines` |
+| Node.js | 24.21.0 (24 LTS), in `.nvmrc` and `.node-version` | `24.x` in `engines` and `devEngines` |
+| npm | 11.19.0, in `packageManager` | `11.x` in `engines` and `devEngines` |
 
-The [official Node release index](https://nodejs.org/dist/index.json) lists Node 24.21.0 with bundled npm 11.19.0. These exact versions were selected and verified on 2026-09-21. `.npmrc` enables strict engine checks and exact dependency saves. npm's [`devEngines` documentation](https://docs.npmjs.com/cli/v11/configuring-npm/package-json#devengines) describes checks before install, ci and run commands.
+The [official Node release index](https://nodejs.org/dist/index.json) lists Node 24.21.0 with bundled npm 11.19.0. These exact local reference versions were selected and verified on 2026-09-21. Managed builds may use other patches within the supported major versions. `.npmrc` retains strict engine checks and exact dependency saves. npm's [`devEngines` documentation](https://docs.npmjs.com/cli/v11/configuring-npm/package-json#devengines) describes checks before install, ci and run commands.
+
+Vercel selects only a Node major and manages minor/patch upgrades. Requiring exactly Node 24.21.0 caused the first preview to fail on Vercel's Node 24.19.0 before installation. Both `engines` and `devEngines` now allow Node 24.x and npm 11.x. Changing only one would leave the other check blocking deployment. Keep the exact local pins and lockfile for reproducibility; do not use `--force`, disable strict checking or rely on Vercel installing a requested Node patch. See [Vercel's Node version policy](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
 
 `packageManager` records the intended CLI; it does not install npm automatically. Use the official Node distribution's bundled npm, or install the exact npm version in your chosen isolated Node environment. Do not globally replace another project's runtime to satisfy this repository.
 
@@ -33,11 +35,11 @@ The [official Node release index](https://nodejs.org/dist/index.json) lists Node
    git status --short
    ```
 
-   Expect `v24.21.0`, `11.19.0`, successful installation and no tracked changes. A version mismatch must fail rather than quietly using a different runtime.
+   The local reference reports `v24.21.0` and `11.19.0`. Expect successful installation and no tracked changes. Other supported Node 24/npm 11 patches are accepted; unsupported major versions fail.
 
 5. Read [CONTRIBUTING.md](../CONTRIBUTING.md) and choose a ready task from [TASK_STATUS.md](TASK_STATUS.md).
 
-There are no service credentials or application dependencies required at this bootstrap stage. The root manifest is private and dependency-free. Task 00.03 adds client/API/contracts workspaces, TypeScript, lint and test/build commands; task 00.04 adds environment schemas; task 00.05 adds local Supabase and CI.
+No service credentials are needed for the workspace foundation. After installation, run `npm run check` to verify formatting, lint, strict types, unit tests and both production builds. See [WORKSPACE.md](WORKSPACE.md) for the client/API/contracts layout and individual commands. Task 00.04 adds environment schemas; task 00.05 adds local Supabase and CI.
 
 ## Files and secrets
 
@@ -47,4 +49,4 @@ Only redacted `.env.example` or `.env.<name>.example` files may be committed. Re
 
 ## Updating the pins
 
-Update both Node version files, package `engines`/`devEngines`, npm `packageManager` and this guide in one reviewed toolchain change. Regenerate the root lockfile with the selected npm, rerun the fresh-clone check and all application checks that exist at that point, and record the official release evidence. Do not silently track `latest` or bypass engine enforcement.
+Update both Node version files, npm `packageManager` and this guide in one reviewed reference-toolchain change. Change `engines`/`devEngines` together only when the supported major range changes; retain major-only Node selection for Vercel. Regenerate the root lockfile with the reference npm, rerun clean installation and application checks on the reference and observed hosted runtime, and record the release evidence. Do not silently track `latest` or bypass engine enforcement.

@@ -1,13 +1,14 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and ignore rules.
+**Current task:** 00.03 — Client/API/contracts workspace and development tooling.
 
-**State:** in_review — bootstrap acceptance checks passed; PR review and merge remain.
+**State:** in_review — workspace checks and production smoke passed; PR review and merge remain.
 
-**Application implementation:** Not started.  
+**Application implementation:** Static client/API scaffold only; product features are not implemented.
+
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
-**Last updated:** 2026-09-21.
+**Last updated:** 2026-09-22.
 
 ## Status convention
 
@@ -31,8 +32,8 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | Task | State | Evidence / handoff |
 |---|---|---|
 | 00.01 | complete | Baseline commit `da542dea080e124a927f13b57fa633b3cb572380` on `main`; historical handoff below. |
-| 00.02 | in_review | Owner-confirmed `cuneytbozok/finpill`; see task 00.02 handoff below. |
-| 00.03 | pending | — |
+| 00.02 | complete | PR #1 merged as `2f9dd0464eb24defdebdd0576cde513c1057c1a2`; confirmed from GitHub and fetched Git history. |
+| 00.03 | in_review | See task 00.03 handoff below. |
 | 00.04 | pending | — |
 | 00.05 | pending | — |
 | 00.06 | ready | Independent access-register task; no service access assumed. |
@@ -205,7 +206,7 @@ Select **00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and i
 - Task **00.06 — Access register** is independently eligible after 00.01 and may be selected in a separate session.
 - This handoff does not claim that GitHub, Supabase, Clerk, Vercel, KAP, market-data accounts, domains, signing identities, or permitted fixtures are available.
 
-## Task 00.02 handoff
+## Task 00.02 handoff (historical)
 
 ### Scope and ownership
 
@@ -215,7 +216,7 @@ Select **00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and i
 - Worktree: `/Users/cuneytbozok/.codex/worktrees/finpill-00-02/Finpill`.
 - Branch: `codex/00.02-repository-foundation`.
 - Implementation commit: `c3963da`; subsequent evidence-only commits retain the same task branch.
-- PR: [#1 — Repository conventions and pinned toolchain](https://github.com/cuneytbozok/finpill/pull/1), opened and attached to the Codex task. No merge is claimed.
+- PR: [#1 — Repository conventions and pinned toolchain](https://github.com/cuneytbozok/finpill/pull/1), merged on 2026-09-21 as `2f9dd0464eb24defdebdd0576cde513c1057c1a2`. GitHub merged status and local fast-forward to `origin/main` verified.
 - Scope: Git/GitHub connection, toolchain pins, ignore/editor rules, root lockfile and contribution/setup documentation. No application scaffold, database migration, service provisioning or blueprint change.
 
 ### Deliverables and decisions
@@ -243,3 +244,55 @@ Select **00.02 — Git/GitHub setup, branch/PR conventions, Node/npm pins, and i
 After review and merge acceptance for 00.02, mark it complete and select **00.03 — Client/API/contracts npm workspace, strict TypeScript, lint, formatting, unit-test and build commands** from the merged commit. Until then, 00.03 remains pending. Task 00.06 remains independently ready.
 
 GitHub ownership and repository access are confirmed. Other service access, native signing, fixture rights and data-provider prerequisites remain unverified and belong to task 00.06 and their consuming tasks. No pilot data or credentials were committed.
+
+## Task 00.03 handoff
+
+### Scope and ownership
+
+- Owner: Codex, task 00.03 implementation session.
+- Base commit: `2f9dd0464eb24defdebdd0576cde513c1057c1a2` (merged PR #1).
+- Worktree: `/Users/cuneytbozok/.codex/worktrees/finpill-00-03/Finpill`.
+- Branch: `codex/00.03-workspace-foundation`.
+- Implementation commit: `c833576`.
+- PR: [#2 — Static client, Node API and shared contracts](https://github.com/cuneytbozok/finpill/pull/2), opened and attached to the Codex task; no merge is claimed.
+- Scope: npm workspace, independent Next.js application targets, shared contracts, strict TypeScript, lint/format/unit-test/build commands and import-boundary checks. No product screens, routing adapters, authentication, secrets, migrations or service provisioning.
+
+### Deliverables and contracts
+
+- `@finpill/client`: minimal Turkish placeholder page, statically exported to `apps/client/out/`.
+- `@finpill/api`: Node.js API with `GET /api/v1/health`; process liveness only.
+- `@finpill/contracts`: platform-neutral, strict Zod liveness DTO and API version constant, consumed as source by Next.
+- Root npm scripts provide independent app builds and `npm run check`; one lockfile records exact direct dependencies.
+- ESLint rejects server imports/actions and cross-workspace/build-config imports from client/shared source, including dynamic and type imports. Tests exercise rejection and allowed cases.
+- [Workspace guide](WORKSPACE.md) explains boundaries, commands, tooling compatibility and parallel-worktree constraints.
+- No ADR gate was accepted. A01–A03 still require actual routing, native, identity and deployment evidence.
+
+### Verification
+
+- Pinned-toolchain `npm ci --offline --no-audit --no-fund` passed.
+- Fresh local clone of `c833576` independently passed frozen installation and `npm run check`, with unchanged lockfile and clean tracked files afterward.
+- `npm run check` passed: formatting, zero-warning lint, strict app/contracts/test type checks, 23 tests, static client production build and separate API production build.
+- Production API smoke: GET returns exactly the v1 liveness DTO with `Cache-Control: no-store`; POST returns 405. The temporary server was stopped.
+- Static export contains the Turkish HTML document and local Next static assets, without an API/server output directory.
+- Dependency audit after remediation reported zero vulnerabilities; `npm ls --depth=0` reports the expected linked workspaces and versions without invalid peer dependencies.
+- React review: semantic root/main/heading, Turkish document language, no data-fetch waterfalls, effects, global mutable state or unnecessary dependencies in the placeholder.
+- Documentation links, all three locked workspaces and absence of nested lockfiles verified. Blueprint remains byte-for-byte unchanged.
+- CI, native builds, authenticated services and financial outputs were not tested because they do not exist in this task.
+
+### Vercel installation correction — 2026-09-22
+
+The first Vercel preview for `8aa2e76` failed before installation because the manifest required Node 24.21.0 while Vercel supplied 24.19.0. Vercel supports selection by major version and manages minor/patch updates.
+
+- Keep the exact local Node version files and npm `packageManager` reference; allow `24.x` and `11.x` consistently in `engines`, `devEngines` and lockfile metadata.
+- Retain strict engine enforcement and exact dependency/lockfile versions. No force flags or deployment-specific bypass were added.
+- Reproduced the original `EBADDEVENGINES` with official checksum-verified Node 24.19.0 and bundled npm 11.17.0. The corrected manifest installs; unsupported Node 25 still fails.
+- Clean installation and the full check command pass on Node 24.19.0/npm 11.17.0; the full check also passes on the local reference Node 24.21.0/npm 11.19.0. Both runs include 23 tests and both production builds.
+- This supersedes the earlier exact-patch rejection policy in the historical 00.02 handoff. Exact local references and supported hosted-runtime ranges serve different purposes.
+- The next preview passed the installation/build stage but failed because Vercel expected `public` (owner-provided build error). Added root `vercel.json` selecting the client build and `apps/client/out` explicitly, with frozen installation. The project's Root Directory must remain the repository root. The API stays a separate deployment target.
+- Hosted verification of the output-directory correction remains pending. The Vercel connector reports no authorization for the project's team; GitHub deployment status remains available.
+
+### Next-task readiness and parallel ownership
+
+After PR review and merge, mark 00.03 complete. Tasks **00.04 — Environment schemas** and **00.05 — Local database/CI** become ready; **00.06 — Access register** is already independently ready. Do not mark these tasks complete based on this scaffold.
+
+00.04 and 00.05 may use separate worktrees after their common prerequisite merges, with one coordinator handling root dependency/lockfile and task-ledger changes. Different worktrees need distinct local ports and explicitly isolated databases; worktrees isolate files, not external resources. No additional agents or user-owned chats were launched in this session.
