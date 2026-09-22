@@ -15,9 +15,29 @@
   5. If repository/PR evidence shows that a ledger state is stale, use the verified repository/PR state for task selection and preserve the discrepancy for correction in the next safe documentation update.
   6. If an actionable task is already `in_progress`, continue that task from its existing branch/worktree.
   7. If a task is `in_review`, continue it only when there is actionable unresolved review or acceptance work that can be completed in this session. If it is merely awaiting review/merge and does not block later work, leave it in review and continue task selection.
-  8. Otherwise select the first `ready` task in roadmap order whose dependencies and required architecture gates are satisfied.
+  8. Otherwise select the first `ready` task in roadmap order whose dependencies and required architecture gates are satisfied. Before selecting a later `ready` task, check whether any earlier roadmap task is blocked only by user/external action, regardless of its recorded ledger state. If so, surface that blocker under the rules below and obtain explicit user approval before bypassing it.
   9. If the remote state cannot be verified, do not start a new task based only on potentially stale local state. Report the verification failure instead.
   10. Do not load task-specific skills, Context7, external documentation, implementation files, or create a new worktree until task selection is complete.
+
+  ### External blockers and user input
+
+  - Do not silently skip an earlier roadmap task because it requires user-provided access, ownership, configuration, credentials, account setup, signing, provider selection, or another external decision.
+  - When the next roadmap task cannot proceed because of a user/external prerequisite:
+
+    1. Stop before starting a later task.
+    2. State the blocked task ID and the exact blocking requirement.
+    3. Tell the user exactly what they need to do or provide to unblock it.
+    4. Separate:
+       - information the user can safely provide in chat,
+       - secrets/credentials that must be configured outside chat,
+       - external actions the user must perform in a provider console or account.
+    5. Give concrete identifiers, settings, console locations, or verification steps when known.
+    6. Explain how completion will be verified.
+    7. Record the blocker and required next action in `docs/TASK_STATUS.md`.
+    8. Wait for the user's response before starting a later independent task; a response alone does not authorize bypassing the blocker.
+
+  - A later independent `ready` task may be started while an earlier task is blocked only after the user explicitly approves continuing around that blocker. Existing dependency and architecture-gate requirements still apply.
+  - If several upcoming tasks require user action, group their requirements into one concise checklist so the user can clear multiple blockers at once. Use targeted prerequisite reads to prepare this checklist without loading unrelated task context or starting those tasks.
 
   ### Selected-task context
 
