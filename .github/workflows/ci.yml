@@ -27,6 +27,11 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run check
+      - run: npm run native:sync
+        env:
+          NEXT_PUBLIC_APP_ENV: production
+          NEXT_PUBLIC_API_ENABLED: "false"
+          NEXT_PUBLIC_AUTH_ENABLED: "false"
       - run: npm run test:environment-build
       - run: git diff --exit-code
   database:

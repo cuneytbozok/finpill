@@ -6,7 +6,14 @@ import { browserBoundary } from "./tools/eslint/browser-boundary.mjs";
 
 export default [
   {
-    ignores: ["**/.next/**", "**/out/**", "**/next-env.d.ts", "**/coverage/**"],
+    ignores: [
+      "**/.next/**",
+      "**/out/**",
+      "**/next-env.d.ts",
+      "**/coverage/**",
+      "apps/client/ios/**",
+      "apps/client/android/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

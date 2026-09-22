@@ -1,0 +1,11 @@
+{
+  "appId": "com.cuneytbozok.finpill",
+  "appName": "Finpill",
+  "webDir": "out",
+  "ios": {
+    "webContentsDebuggingEnabled": false
+  },
+  "android": {
+    "webContentsDebuggingEnabled": false
+  }
+}

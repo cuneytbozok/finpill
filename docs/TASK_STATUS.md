@@ -3,7 +3,7 @@
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
 **Current task:** 01.02 — Capacitor iOS/Android shells and bundled-asset proof.
 
-**State:** ready — local application IDs and signing approach are owner-confirmed; native implementation and acceptance have not started.
+**State:** blocked — native projects and static asset checks are implemented; native builds/cold starts require host tooling repair.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -43,13 +43,13 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | Task | State | Evidence / handoff |
 |---|---|---|
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
-| 01.02 | ready | Owner confirmed both `com.cuneytbozok.finpill` IDs and local development signing; store enrollment is not a 01.02 prerequisite. Native proof remains unstarted. See readiness reassessment below. |
+| 01.02 | blocked | iOS/Android projects and static asset checks implemented. Xcode requires iOS 26.5 components; Android Java/SDK are absent. Native build/artifact/cold-start acceptance remains. See implementation handoff. |
 | 01.03 | pending | — |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | in_review | [Draft PR #8](https://github.com/cuneytbozok/finpill/pull/8) is open and unmerged; native acceptance remains after 01.02. Its branch carries the detailed handoff. |
+| 01.08 | in_review | PR #8 is verified merged; the prior open/draft description was stale. Native acceptance remains after 01.02, so merge alone is not full acceptance. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -404,3 +404,16 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Roadmap clarification: the private-use signing/store rule is explicit in [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md) without changing task 01.02's deliverables or acceptance checks.
 - Verification: compared the approved 01.02 roadmap row with owner-provided identifiers and official Capacitor, Apple and Android local-run/signing guidance. No native project, build, simulator, device, secret, migration or architecture gate was created or verified by this documentation update.
 - Next action: start 01.02 in a new isolated implementation worktree from verified `origin/main` after this readiness correction merges. Preserve 01.08's draft review state; its native acceptance can follow the 01.02 shell proof. Clerk instance access remains a separate 01.03 prerequisite.
+
+## Task 01.02 implementation handoff
+
+- Owner: Codex; branch `codex/01.02-capacitor-shells`; worktree `/private/tmp/finpill-01-02-capacitor`.
+- Base: verified `origin/main` at `60407d6`; existing user checkout preserved.
+- Scope: bundled static client in Capacitor iOS/Android projects, release configuration and native acceptance evidence.
+- Deliverables: pinned Capacitor 8.5.2 native projects, SPM lock, shared `out` asset input, disabled WebView debugging, opt-in Android local signing for non-debuggable Release builds, build/sync/inspection commands and CI static asset check. [Native build guide](NATIVE_SHELLS.md) contains reproducible commands and acceptance steps.
+- Verification: `npm run check` passed formatting, zero-warning lint, typecheck, 88 tests and both builds. `npm run test:environment-build` passed invalid-config/runtime, production-liveness and secret-canary checks (22 static files). Production client export and native sync passed; both staged bundles match all 22 exported files by hash. These are staged assets, not compiled native artifact acceptance.
+- Negative artifact checks: temporary copied bundles with stale entry content, `.next` output, a remote shell URL and a synthetic secret pattern were each rejected.
+- Native attempts: Xcode 26.6 resolved Capacitor Swift 8.5.2 but both generic and existing iOS 26.2 simulator Release destinations failed with “iOS 26.5 is not installed”; install/repair it in Xcode → Settings → Components. Android `./gradlew assembleRelease -PfinpillLocalSigning` failed because no Java runtime exists; Android Studio and the default SDK directory are absent.
+- User action: install/repair Xcode's requested iOS platform; install Android Studio (2025.2.1+), its JDK, API 36 SDK/build tools and an emulator via SDK/Device Manager. Configure local Java/SDK paths outside the repository. No credentials, paid store enrollment or chat secrets are required. Then resume this same branch for Release builds, actual artifact inspection and offline cold starts on both platforms.
+- No architecture gate is accepted; A01–A03 remain unaccepted. No migration, financial logic, auth adapter, API origin contract or deep-link integration changed. 01.08's merged PR still has outstanding native acceptance; its stale open/draft ledger description was reconciled without claiming that acceptance passed.
+- Next action: remain on 01.02 until tooling and native acceptance are complete. No later task was started. Commit/PR evidence is recorded below when created.
