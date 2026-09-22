@@ -90,20 +90,13 @@ try {
   supabase("db", "start");
   supabase("db", "reset", "--local", "--no-seed");
   supabase("test", "db", "--local");
-  // This container's random name belongs only to this run, never the user's local/pilot database.
-  run("docker", [
-    "exec",
-    `supabase_db_${project}`,
-    "psql",
-    "-U",
-    "postgres",
-    "-d",
-    "postgres",
-    "-v",
-    "ON_ERROR_STOP=1",
-    "-c",
+  // The CLI's explicit --local target avoids assuming Docker's generated container name.
+  supabase(
+    "db",
+    "query",
+    "--local",
     "create table public.finpill_disposable_probe (id integer);",
-  ]);
+  );
   supabase("db", "reset", "--local", "--no-seed");
   supabase("test", "db", "--local");
   console.log(
