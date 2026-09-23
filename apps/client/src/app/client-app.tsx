@@ -2,6 +2,7 @@
 
 import { ClerkProvider, SignInButton, UserButton, useAuth } from "@clerk/react";
 import { Capacitor } from "@capacitor/core";
+import { iosClerk } from "@/runtime/ios-clerk";
 import {
   SessionResponseSchema,
   companyRoute,
@@ -215,9 +216,11 @@ function RouteContent({
 function AppShell({
   auth,
   accountControl,
+  sessionNotice,
 }: {
   auth?: AuthPort;
   accountControl?: ReactNode;
+  sessionNotice?: ReactNode;
 }) {
   const [route, setRoute] = useState<AppRoute>({ kind: "home" });
   const [desktopSearch, setDesktopSearch] = useState("");
@@ -364,6 +367,11 @@ function AppShell({
           </select>
         </div>
       </header>
+      {sessionNotice && (
+        <div className="session-notice" role="status">
+          {sessionNotice}
+        </div>
+      )}
       <RouteContent route={route} searchPageRef={searchPageRef} />
       <nav aria-label="Mobil ana navigasyon" className="mobile-nav">
         <Navigation route={route} />
@@ -433,15 +441,139 @@ function WebAuthApp() {
   return <AppShell auth={auth} accountControl={accountControl} />;
 }
 
-export function ClientApp() {
-  // The same static files run in Capacitor; native auth adapters arrive in 01.04/01.05.
-  const isWeb = useSyncExternalStore(
-    subscribePlatform,
-    () => !Capacitor.isNativePlatform(),
-    () => false,
+function IOSAuthApp() {
+  const [loaded, setLoaded] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const [tokenStatus, setTokenStatus] = useState<
+    "checking" | "ready" | "error"
+  >("checking");
+  const auth = useMemo<AuthPort>(
+    () => ({ getAccessToken: iosClerk.getAccessToken }),
+    [],
   );
-  if (!publicEnvironment.NEXT_PUBLIC_AUTH_ENABLED || !isWeb)
-    return <AppShell />;
+
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const state = await iosClerk.state();
+        if (active) {
+          setLoaded(state.isLoaded);
+          setUserId(state.userId);
+          if (state.isLoaded) setError(false);
+        }
+      } catch {
+        if (active) setError(true);
+      }
+    };
+    void iosClerk
+      .initialize(publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!)
+      .then(() => {
+        if (active) void refresh();
+      })
+      .catch(() => {
+        if (active) setError(true);
+      });
+    const timer = window.setInterval(() => void refresh(), 1500);
+    const timeout = window.setTimeout(() => {
+      void iosClerk
+        .state()
+        .then((state) => {
+          if (active && !state.isLoaded) setError(true);
+        })
+        .catch(() => {
+          if (active) setError(true);
+        });
+    }, 15000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!loaded || !userId) return;
+    let active = true;
+    const checkToken = async () => {
+      try {
+        const token = await auth.getAccessToken();
+        if (active) setTokenStatus(token ? "ready" : "error");
+      } catch {
+        if (active) setTokenStatus("error");
+      }
+    };
+    const onResume = () => {
+      if (!document.hidden) void checkToken();
+    };
+    void checkToken();
+    const timer = window.setInterval(() => void checkToken(), 60000);
+    document.addEventListener("visibilitychange", onResume);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onResume);
+    };
+  }, [auth, loaded, userId]);
+
+  const accountControl = (
+    <div className="account-control">
+      {!loaded && !error && <span role="status">Oturum yükleniyor</span>}
+      {error && <span role="alert">Oturum kullanılamıyor</span>}
+      {loaded && !error && !userId && (
+        <button
+          onClick={() => void iosClerk.signIn().catch(() => setError(true))}
+          type="button"
+        >
+          Giriş yap
+        </button>
+      )}
+      {loaded && !error && userId && (
+        <button
+          onClick={() =>
+            void iosClerk
+              .signOut()
+              .then(() => {
+                setUserId(null);
+                setTokenStatus("checking");
+              })
+              .catch(() => setError(true))
+          }
+          type="button"
+        >
+          Çıkış yap
+        </button>
+      )}
+    </div>
+  );
+  const sessionNotice = userId
+    ? tokenStatus === "ready"
+      ? "Oturum hazır"
+      : tokenStatus === "error"
+        ? "Oturum yenilenemedi"
+        : "Oturum doğrulanıyor"
+    : undefined;
+  return (
+    <AppShell
+      auth={auth}
+      accountControl={accountControl}
+      sessionNotice={sessionNotice}
+    />
+  );
+}
+
+export function ClientApp() {
+  const platform = useSyncExternalStore(
+    subscribePlatform,
+    () => Capacitor.getPlatform(),
+    () => "server",
+  );
+  if (!publicEnvironment.NEXT_PUBLIC_AUTH_ENABLED) return <AppShell />;
+  if (platform === "ios") return <IOSAuthApp />;
+  if (platform !== "web") return <AppShell />;
   return (
     <ClerkProvider
       publishableKey={publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
