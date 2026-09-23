@@ -2,6 +2,7 @@
 
 import { ClerkProvider, SignInButton, UserButton, useAuth } from "@clerk/react";
 import { Capacitor } from "@capacitor/core";
+import { iosClerk } from "@/runtime/ios-clerk";
 import {
   SessionResponseSchema,
   companyRoute,
@@ -433,15 +434,90 @@ function WebAuthApp() {
   return <AppShell auth={auth} accountControl={accountControl} />;
 }
 
-export function ClientApp() {
-  // The same static files run in Capacitor; native auth adapters arrive in 01.04/01.05.
-  const isWeb = useSyncExternalStore(
-    subscribePlatform,
-    () => !Capacitor.isNativePlatform(),
-    () => false,
+function IOSAuthApp() {
+  const [loaded, setLoaded] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const auth = useMemo<AuthPort>(
+    () => ({ getAccessToken: iosClerk.getAccessToken }),
+    [],
   );
-  if (!publicEnvironment.NEXT_PUBLIC_AUTH_ENABLED || !isWeb)
-    return <AppShell />;
+
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const state = await iosClerk.state();
+        if (active) {
+          setUserId(state.userId);
+          setError(false);
+        }
+      } catch {
+        if (active) setError(true);
+      }
+    };
+    void iosClerk
+      .initialize(publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!)
+      .then(() => {
+        if (active) {
+          setLoaded(true);
+          void refresh();
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setLoaded(true);
+          setError(true);
+        }
+      });
+    const timer = window.setInterval(() => void refresh(), 1500);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
+  const accountControl = (
+    <div className="account-control">
+      {!loaded && <span role="status">Oturum yükleniyor</span>}
+      {error && <span role="alert">Oturum kullanılamıyor</span>}
+      {loaded && !error && !userId && (
+        <button
+          onClick={() => void iosClerk.signIn().catch(() => setError(true))}
+          type="button"
+        >
+          Giriş yap
+        </button>
+      )}
+      {loaded && !error && userId && (
+        <button
+          onClick={() =>
+            void iosClerk
+              .signOut()
+              .then(() => setUserId(null))
+              .catch(() => setError(true))
+          }
+          type="button"
+        >
+          Çıkış yap
+        </button>
+      )}
+    </div>
+  );
+  return <AppShell auth={auth} accountControl={accountControl} />;
+}
+
+export function ClientApp() {
+  const platform = useSyncExternalStore(
+    subscribePlatform,
+    () => Capacitor.getPlatform(),
+    () => "server",
+  );
+  if (!publicEnvironment.NEXT_PUBLIC_AUTH_ENABLED) return <AppShell />;
+  if (platform === "ios") return <IOSAuthApp />;
+  if (platform !== "web") return <AppShell />;
   return (
     <ClerkProvider
       publishableKey={publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
