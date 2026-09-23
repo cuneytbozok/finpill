@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.03 — Clerk web authentication and API bearer verification, 2026-09-23.
+**Current task:** 01.04 — iOS Clerk SDK adapter, 2026-09-23.
 
-**State:** complete — development-instance web sign-in/out, invite-only mode, and protected API acceptance passed; PR #16 merged and CI/Preview passed. See handoff below.
+**State:** blocked — implementation and build checks passed, but native Clerk registration and live iOS lifecycle acceptance are outstanding. See handoff below.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -45,7 +45,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
 | 01.02 | complete | PR #11 merged as `4243be4`. Release builds/artifacts, iOS home/search and Android offline runtime verified. Owner waived the unperformed iOS offline check; see closeout exception below. |
 | 01.03 | complete | [PR #16](https://github.com/cuneytbozok/finpill/pull/16) merged as `2489019`; development Clerk sign-in/out, signed bearer access, negative token cases, CI, and Preview passed. See handoff. |
-| 01.04 | pending | — |
+| 01.04 | blocked | iOS SDK bridge and Release simulator build verified; Native API/iOS app registration, device provisioning, and live lifecycle checks remain. See handoff. |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
@@ -492,3 +492,11 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Full `npm run check` passed on pinned Node 24.21.0/npm 11.19.0: Prettier, zero-warning lint, strict typecheck, 99 tests, static client export, and API build. `npm run test:environment-build` passed isolated from ignored local env files: invalid-build/runtime checks, production liveness, and 43-file static scan. An additional 43-file scan found no server secret value in the client export. Browser checks showed the sign-in modal, no framework overlay in the isolated browser, and complete controls without horizontal overflow at 390 and 320 CSS pixels. A Chrome extension caused a development-only hydration warning by adding an attribute to `<html>`; it did not occur in the isolated browser run.
 - Deployment resolution: the owner removed both development Clerk keys from Production and retained them for Preview and Development. The Vercel settings page now shows `CLERK_SECRET_KEY` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` scoped to “All Pre-Production Environments.” The [Production deployment](https://vercel.com/cuneyts-projects-ec980692/finpill/2i3vgPCmihS1xrr2CMNk6sNhkETm) of merged commit `2489019` is Ready, resolving the previously reported configuration-load build failure. Codex did not change Vercel scopes. Production Clerk authentication remains disabled/unverified until live pilot keys and release gates are approved; do not count this as A03 evidence.
 - Closeout: [PR #16](https://github.com/cuneytbozok/finpill/pull/16) merged into `origin/main` as `2489019ba40626044d8b20aeeed1308df75e555d`, verified by fetch and GitHub. The final implementation commit passed CI quality and database jobs, including `npm run check`, native sync, environment smoke, and database tests; Vercel Preview passed. Hosted authenticated sessions remain unverified. After this ledger closeout merges, re-run canonical discovery; 01.04 is the next roadmap candidate, subject to its native SDK and release-mode prerequisites. Keep the 01.02 iOS offline waiver and A01–A12 unaccepted.
+
+## Task 01.04 iOS SDK adapter handoff — 2026-09-23
+
+- Owner: Codex; branch `codex/01.04-ios-clerk-auth`, worktree `.worktrees/01.04`, base `dc21397` from fetched/pruned `origin/main`. The user's `main` checkout was not changed. Implementation commit `53d56c2`; [draft PR #18](https://github.com/cuneytbozok/finpill/pull/18).
+- Deliverables: ClerkKit and ClerkKitUI 1.3.9 pinned in the Xcode App target; a local Capacitor bridge for SDK configuration, native sign-in UI, state, sign-out, and fresh session tokens; iOS `AuthPort` wiring and account controls in the shared static client; [iOS setup and acceptance guide](IOS_AUTH.md). Clerk owns Keychain persistence. No API, database, web-auth, Android-auth, or financial contract was changed. The SDK requires iOS 17+, so the App target and generated Capacitor package minimum changed from iOS 15 to 17. No signing setting was modified.
+- Verification passed: pinned Node 24.21.0/npm 11.19.0 clean offline install; `npm run check` with local disabled-integration environment (Prettier, zero-warning lint, typecheck, 99 tests, client/API builds); `npm run native:sync` with the existing ignored development publishable-key configuration and 43 matching static assets; Xcode package resolution and unsigned iOS Release simulator build against the booted iPhone 17 Pro / iOS 26.5; `npm run test:environment-build` isolated from ignored local settings, including invalid environment cases, production liveness and a 43-file static scan. Xcode project syntax and `git diff --check` passed. The Clerk package resolved to tag 1.3.9/revision `32f7e0f`; its transitive packages are locked in `Package.resolved`.
+- Blocked live acceptance: the owner has not confirmed the development Clerk instance's Native API enablement or iOS native application registration. Initial inspection found no `DEVELOPMENT_TEAM`; the owner subsequently selected Personal Team `7NA7D47449` for Debug and Release in Xcode with automatic signing. Codex did not edit signing settings. Physical-device provisioning remains unverified. Release-mode sign-in, cancellation, secure cold restart, expiry, network loss/recovery, resume, sign-out and token-leakage checks were not performed. The simulator build does not prove these cases. No A01–A03 gate is accepted.
+- Next action: register the native app in the existing development Clerk instance using the signing App ID Prefix, enable Native API, then run the guide's live acceptance in this same worktree/branch. Preserve the 01.02 iOS offline waiver as waived, not passed. Do not start another roadmap task in this implementation session.
