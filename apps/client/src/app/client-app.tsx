@@ -2,6 +2,7 @@
 
 import { ClerkProvider, SignInButton, UserButton, useAuth } from "@clerk/react";
 import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import { nativeClerk } from "@/runtime/native-clerk";
 import type { NativeClerk } from "@/runtime/native-clerk";
 import {
@@ -20,6 +21,7 @@ import {
 import { publicEnvironment } from "@/config/environment";
 import { createClientApi } from "@/runtime/api";
 import { createBrowserPlatform } from "@/runtime/browser-platform";
+import { resolveDeepLink } from "@/runtime/deep-links";
 
 import { EmptyState, ErrorState } from "./ui-primitives";
 import {
@@ -252,6 +254,49 @@ function AppShell({
     update(platform.navigation.getPathname());
     return platform.navigation.subscribe(update);
   }, [auth]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let active = true;
+    const handles: Array<{ remove(): Promise<void> }> = [];
+    const open = (url: string) => {
+      if (!active) return;
+      const path = resolveDeepLink(
+        url,
+        publicEnvironment.NEXT_PUBLIC_DEEP_LINK_ORIGIN,
+      );
+      if (path && path !== window.location.pathname)
+        createBrowserPlatform(window).navigation.navigate(path);
+    };
+    void App.addListener("appUrlOpen", ({ url }) => open(url))
+      .then((handle) => {
+        if (active) handles.push(handle);
+        else void handle.remove();
+      })
+      .catch(() => {});
+    void App.getLaunchUrl()
+      .then((launch) => {
+        if (launch?.url) open(launch.url);
+      })
+      .catch(() => {});
+    if (Capacitor.getPlatform() === "android") {
+      void App.addListener("backButton", () => {
+        if (window.history.state?.finpillNavigation) window.history.back();
+        else if (window.location.pathname !== "/")
+          createBrowserPlatform(window).navigation.navigate("/");
+        else void App.exitApp();
+      })
+        .then((handle) => {
+          if (active) handles.push(handle);
+          else void handle.remove();
+        })
+        .catch(() => {});
+    }
+    return () => {
+      active = false;
+      for (const handle of handles) void handle.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (previousRoute.current === "search" && route.kind !== "search") {

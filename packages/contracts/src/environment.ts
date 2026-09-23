@@ -44,6 +44,7 @@ export const PublicEnvironmentSchema = z
     NEXT_PUBLIC_API_ORIGIN: OriginSchema.optional(),
     NEXT_PUBLIC_AUTH_ENABLED: FeatureFlagSchema,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_DEEP_LINK_ORIGIN: OriginSchema.optional(),
   })
   .superRefine((env, ctx) => {
     if (env.NEXT_PUBLIC_API_ENABLED && !env.NEXT_PUBLIC_API_ORIGIN) {
@@ -63,6 +64,16 @@ export const PublicEnvironmentSchema = z
         path: ["NEXT_PUBLIC_API_ORIGIN"],
         message:
           "Hosted environments require an HTTPS origin outside local networks",
+      });
+    }
+    if (
+      env.NEXT_PUBLIC_DEEP_LINK_ORIGIN !== undefined &&
+      !isHostedOrigin(env.NEXT_PUBLIC_DEEP_LINK_ORIGIN)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_DEEP_LINK_ORIGIN"],
+        message: "Deep links require a hosted HTTPS origin",
       });
     }
     if (

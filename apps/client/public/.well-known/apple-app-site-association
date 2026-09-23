@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "7NA7D47449.com.cuneytbozok.finpill",
+        "paths": ["/company/*", "/search"]
+      }
+    ]
+  }
+}
