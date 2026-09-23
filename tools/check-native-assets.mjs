@@ -79,7 +79,7 @@ for (const target of targets) {
     await readFile(path.join(target, "capacitor.config.json"), "utf8"),
   );
   if ("packageClassList" in packagedConfig) {
-    assert.deepEqual(packagedConfig.packageClassList, []);
+    assert.deepEqual(packagedConfig.packageClassList, ["AppPlugin"]);
     delete packagedConfig.packageClassList;
   }
   assert.deepEqual(packagedConfig, config, `Configuration drift: ${target}`);

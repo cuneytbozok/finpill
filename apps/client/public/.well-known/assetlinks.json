@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cuneytbozok.finpill",
+      "sha256_cert_fingerprints": [
+        "3C:86:52:5E:D5:B0:BC:D1:3C:71:0D:05:46:D1:A1:56:BB:37:33:56:A2:0A:EF:C4:35:5B:38:9F:A7:19:34:B3"
+      ]
+    }
+  }
+]

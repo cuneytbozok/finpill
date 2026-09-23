@@ -36,6 +36,7 @@
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		A10400010000000000000007 /* FinpillClerkPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinpillClerkPlugin.swift; sourceTree = "<group>"; };
 		A10400010000000000000008 /* FinpillBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinpillBridgeViewController.swift; sourceTree = "<group>"; };
+		A10700010000000000000001 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +76,7 @@
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				A10400010000000000000007 /* FinpillClerkPlugin.swift */,
 				A10400010000000000000008 /* FinpillBridgeViewController.swift */,
+				A10700010000000000000001 /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
