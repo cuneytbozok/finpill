@@ -3,7 +3,7 @@
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
 **Current task:** 01.03 — Clerk web authentication and API bearer verification, 2026-09-23.
 
-**State:** in_review — development-instance web sign-in/out, invite-only mode, and protected API acceptance passed locally; implementation awaits PR review and merge. See handoff below.
+**State:** complete — development-instance web sign-in/out, invite-only mode, and protected API acceptance passed; PR #16 merged and CI/Preview passed. See handoff below.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -44,7 +44,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 |---|---|---|
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
 | 01.02 | complete | PR #11 merged as `4243be4`. Release builds/artifacts, iOS home/search and Android offline runtime verified. Owner waived the unperformed iOS offline check; see closeout exception below. |
-| 01.03 | in_review | Development Clerk instance, web sign-in/out, signed bearer access, negative token cases, and local builds verified; see handoff. Review/merge pending. |
+| 01.03 | complete | [PR #16](https://github.com/cuneytbozok/finpill/pull/16) merged as `2489019`; development Clerk sign-in/out, signed bearer access, negative token cases, CI, and Preview passed. See handoff. |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
@@ -491,4 +491,4 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Negative verification: real Clerk JWT verification against generated RSA fixtures rejected unsigned, malformed, expired, future, wrong-issuer, wrong-authorized-party, missing-authorized-party, missing-session, and tampered requests (11 auth tests). Live local API returned `401` for unsigned and invalid bearer requests, `403` for an unknown browser origin, and `204` with only the allowed origin/Authorization header for valid preflight. The client and API builds remained separate.
 - Full `npm run check` passed on pinned Node 24.21.0/npm 11.19.0: Prettier, zero-warning lint, strict typecheck, 99 tests, static client export, and API build. `npm run test:environment-build` passed isolated from ignored local env files: invalid-build/runtime checks, production liveness, and 43-file static scan. An additional 43-file scan found no server secret value in the client export. Browser checks showed the sign-in modal, no framework overlay in the isolated browser, and complete controls without horizontal overflow at 390 and 320 CSS pixels. A Chrome extension caused a development-only hydration warning by adding an attribute to `<html>`; it did not occur in the isolated browser run.
 - Deployment blocker outside local 01.03 acceptance: the owner reported a Vercel production build of `813017f` failing because a `pk_test_` value is present in Production, while `NEXT_PUBLIC_APP_ENV=production` requires a live key even when the key is merely supplied. The Vercel page showed both Clerk keys scoped to All Environments. Automatic approval review rejected changing the Production scope; the owner then chose to keep both keys in All Environments for now. No Vercel scope was changed by Codex. That production build remains unverified and must be corrected with approved environment isolation or live pilot keys before 01.09/01.10; do not weaken the production-key validation or count this as A03 evidence.
-- PR #16 is open, mergeable, and awaiting CI/review. Its Vercel Preview status initially reported success; hosted authentication and Production remain unverified. After acceptance/merge, re-run canonical discovery; 01.04 is the next roadmap candidate, subject to its native SDK and release-mode prerequisites. Keep the 01.02 iOS offline waiver and A01–A12 unaccepted.
+- Closeout: [PR #16](https://github.com/cuneytbozok/finpill/pull/16) merged into `origin/main` as `2489019ba40626044d8b20aeeed1308df75e555d`, verified by fetch and GitHub. The final implementation commit passed CI quality and database jobs, including `npm run check`, native sync, environment smoke, and database tests; Vercel Preview passed. Hosted authentication and Production remain unverified. After this ledger closeout merges, re-run canonical discovery; 01.04 is the next roadmap candidate, subject to its native SDK and release-mode prerequisites. Keep the 01.02 iOS offline waiver and A01–A12 unaccepted.
