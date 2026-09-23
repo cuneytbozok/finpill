@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.02 — Capacitor iOS/Android shells and bundled-asset proof.
+**Current task:** Approved research-navigation documentation alignment (BC-18), 2026-09-23.
 
-**State:** complete — PR #11 merged; owner accepted task 01.02 with the iOS offline check explicitly waived, not passed.
+**State:** in_review — blueprint v0.4, roadmap and correction register aligned on `codex/docs-research-navigation`; documentation integration pending. No implementation task started.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -49,7 +49,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | in_review | PR #8 is verified merged; the prior open/draft description was stale. Native acceptance remains after 01.02, so merge alone is not full acceptance. |
+| 01.08 | in_review | PR #8 verified merged on 2026-09-22; merge is not full acceptance. BC-18 now requires three-destination shell/search/AI-entry reconciliation and web/native verification. Broader native acceptance remains outstanding; see current documentation handoff. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -452,3 +452,15 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - This exception closes only task 01.02. It does not accept A01–A03, waive later authentication/lifecycle/release checks, or complete task 01.08's broader native acceptance. Preserve the unverified iOS offline condition in future gate assessments rather than treating the merge as test evidence.
 - Validation for this closeout: verified GitHub merge and fetched commit; checked the ledger state and exception text; documentation formatting and diff checks only. No code changed and no code/native tests were rerun; prior implementation results remain recorded above.
 - Next-session handoff: task 01.03 is the next roadmap candidate; re-run canonical task discovery and verify its prerequisites before selecting it. No later task was started in this closeout.
+
+
+## Research-navigation documentation alignment — 2026-09-23
+
+- Owner: Codex, implementing the product owner's explicit approval to align documentation before resuming implementation. Single-session scope is BC-18 only; no roadmap implementation task was selected or started.
+- Branch/worktree/base: `codex/docs-research-navigation`, `/private/tmp/finpill-docs-research-navigation`, verified `origin/main` at `ad860e37c6353e6e50759cac1af5b7c5470dad0c`. Existing user checkout and implementation worktrees were not changed.
+- Deliverables: blueprint v0.4; revised roadmap acceptance for 01.07–01.08, 07.01, 07.05–07.06, 07.08 and 09.02–09.04/09.06; BC-18 application record; [illustrative mockup](design/research-navigation-mockup.png). Three primary destinations and contextual analysis/Q&A replace primary Search/AI tabs. Private company Q&A remains in scope. Comparison labels, independent freshness, sources and readable mobile layouts are explicit.
+- Contracts/migrations: documentation only; no code, schema, API transport or architecture-gate change. Existing `/search` and company AI URLs remain; `/ai` compatibility behavior is specified for implementation. All other correction-register entries remain unapplied.
+- Reconciliation: fetched/pruned origin and verified GitHub PR #8 is MERGED (2026-09-22T23:29:14Z). Its original five-destination implementation/evidence does not satisfy BC-18. Preserve task 01.08 as in_review until revised shell behavior and outstanding web/native acceptance are verified. No architecture gate is accepted.
+- Verification: PASS — `git diff --check`; balanced Markdown fences; newly introduced relative links resolve; all roadmap task IDs/order/dependencies unchanged; obsolete five-destination/global-selector requirements removed; BC-18 is part of the correction table; saved mockup SHA-256 matches the attachment. Prettier excludes `docs/` by repository policy, so its no-op check is not claimed as document validation. Code lint/typecheck/tests and native checks were not rerun (documentation/image only); no new runtime acceptance is claimed.
+- Publication: documentation commit `8408f56`; [PR #13](https://github.com/cuneytbozok/finpill/pull/13) is open for review. This revision must merge into origin/main before it becomes canonical task-discovery input.
+- Next-session handoff: re-run fetch/prune and canonical discovery. Reconcile actionable 01.08 acceptance work first under the existing-task rule, using its existing branch/worktree and merged documentation; do not duplicate the task. Scope that work to revised shell/routing entry behavior and native design-system acceptance, leaving real directory results to 07.01 and AI features to Phase 09. If no actionable 01.08 work can proceed, consider 01.03 after prerequisite verification. Preserve 01.02's iOS offline exception as waived, not passed. Stop this session after documentation verification/publication.
