@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.08 — research-navigation shell acceptance follow-up, 2026-09-23.
+**Current task:** 01.08 — research-navigation shell acceptance closeout, 2026-09-23.
 
-**State:** in_review — BC-18 shell changes and native build evidence are in [PR #14](https://github.com/cuneytbozok/finpill/pull/14); interactive iOS navigation acceptance remains open.
+**State:** complete — BC-18 shell changes in [PR #14](https://github.com/cuneytbozok/finpill/pull/14) are merged; interactive iOS navigation and narrow-screen review passed. See closeout handoff below.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -49,7 +49,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | in_review | PR #8 merged; BC-18 shell follow-up in [PR #14](https://github.com/cuneytbozok/finpill/pull/14) with web, iOS build/launch, and Android Release evidence. Interactive iOS navigation remains unverified; see handoff. |
+| 01.08 | complete | PR #8 and BC-18 [PR #14](https://github.com/cuneytbozok/finpill/pull/14) merged. Web, iOS and Android shell evidence plus interactive iOS acceptance are recorded below. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -473,3 +473,12 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Remaining acceptance: interactive iOS search, all three destinations, return/focus behavior, and narrow-screen accessibility checks require a working Simulator UI connection or owner run. Simulator visual automation failed with a ScreenCaptureKit stream error; only its launched Home screen was captured. Do not count this as full native acceptance. Hosted preview verification and PR review also remain. A01–A12 remain unaccepted; preserve task 01.02's waived iOS offline exception.
 - Publication: implementation/evidence commit `66521dd`; [PR #14](https://github.com/cuneytbozok/finpill/pull/14) is open for review.
 - Next-session handoff: reconcile PR #14 and finish the remaining 01.08 acceptance on this branch/worktree. If it is only awaiting external review and does not block later work, select the next ready roadmap task under canonical discovery, likely 01.03 after prerequisite verification. Do not duplicate 01.08 or infer any architecture gate passed.
+
+## Task 01.08 acceptance closeout — 2026-09-23
+
+- Owner: Codex. Reused the existing `.worktrees/01.08` worktree for the acceptance run, then created `codex/01.08-acceptance-closeout` from verified `origin/main` commit `0e5c5fb` for this ledger-only update. The user's `main` checkout was not changed. GitHub reports PR #14 merged, with successful quality, database, and Vercel checks.
+- Closeout publication: commit `b67d305`; [PR #15](https://github.com/cuneytbozok/finpill/pull/15) is open for review.
+- Interactive iOS acceptance: on the booted iPhone 17 Pro / iOS 26.5 Simulator, the installed Release shell displayed Home with safe areas and three readable navigation labels. Search opened from Home and More with its input focused. Back returned to the originating destination; pressing Return immediately afterward reopened Search, confirming focus restoration to its entry control. Watchlist and More each rendered with the corresponding selected navigation item. The empty-state content remained legible and no clipping was visible at this phone width.
+- Narrow-screen secondary-text check: the rendered phone UI showed complete navigation labels and secondary copy. The committed light-theme secondary token `#5d6977` has contrast ratios of 5.60:1 on white, 5.27:1 on the page background, and 5.03:1 on the muted surface; the dark-theme secondary token `#b3c0cc` has 8.78:1 on its surface and 7.76:1 on its muted surface. These exceed the 4.5:1 normal-text threshold. This check uses the existing iPhone 17 Pro viewport; it does not claim a separate 320-pixel device run.
+- Prior PR #14 evidence covers web shell/search behavior, Android Release cold start and navigation, both native builds and packaged assets, and the 88-test full check. This closeout changes documentation only; code lint, typecheck, tests, and native builds were not rerun. `git diff --check` and document checks validate this update.
+- No contracts, migrations, product data features, or architecture gates changed. Task 01.02's waived iOS offline check remains waived rather than passed. Next session: re-run canonical discovery and verify Clerk access prerequisites for task 01.03 before implementation. Do not start 01.03 in this session.
