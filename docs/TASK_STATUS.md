@@ -3,7 +3,7 @@
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
 **Current task:** 01.02 — Capacitor iOS/Android shells and bundled-asset proof.
 
-**State:** in_review — both Release builds, compiled-asset inspection and Android offline runtime pass; owner will perform the remaining iOS offline check.
+**State:** complete — PR #11 merged; owner accepted task 01.02 with the iOS offline check explicitly waived, not passed.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -43,7 +43,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | Task | State | Evidence / handoff |
 |---|---|---|
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
-| 01.02 | in_review | Both Release artifacts pass inspection; iOS home/search and Android offline cold-start/home/search verified. Owner-selected manual iOS offline check remains. See runtime acceptance handoff. |
+| 01.02 | complete | PR #11 merged as `4243be4`. Release builds/artifacts, iOS home/search and Android offline runtime verified. Owner waived the unperformed iOS offline check; see closeout exception below. |
 | 01.03 | pending | — |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
@@ -442,3 +442,13 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - iOS: Release cold-start rendering and Search navigation passed with no development server, including corrected safe-area spacing. Saved [home](evidence/01.02/ios-home.png) and [search](evidence/01.02/ios-search.png). The Search capture uses the same corrected source before the final export rebuild; it is navigation/layout evidence, while the final artifact hashes independently prove packaging.
 - Remaining acceptance: owner chose to perform the iOS offline test manually instead of authorizing host-network changes. Disconnect the Mac’s Wi-Fi, fully quit/reopen Finpill in the iPhone 17 Pro simulator, verify home and Search render, reconnect and report the outcome. No host network setting was changed by Codex. Do not mark this check passed without the owner’s result or equivalent observed evidence.
 - Publication: PR #11 remains draft pending that result. Safe-area fix and native evidence were committed and pushed as `ca90824`; the PR description now reflects the verified runtime outcomes. Once the iOS offline result is recorded, finish 01.02 acceptance and review handoff; do not start another task in this session. No architecture gate is accepted, and 01.08’s broader native design-system acceptance is not claimed complete.
+
+
+## Task 01.02 owner acceptance and merge closeout — 2026-09-23
+
+- Verified PR #11 merged into `origin/main` as `4243be4aca1ff9b2689cdc80f5e9062e129bb656` after fetch/prune. Documentation closeout uses branch `codex/01.02-closeout`, worktree `/private/tmp/finpill-01-02-closeout`, based on that merged commit; the user's checkout is unchanged.
+- Owner explicitly stated that the manual iOS offline test was not performed, would not be performed, and that the implementation was accepted and PR merged. Task 01.02 is complete by owner acceptance with this scoped verification exception.
+- **Waived, not passed:** iOS cold-start/Home/Search with the host network unavailable. Existing iOS Release build, compiled-asset inspection, no-development-server rendering and Search evidence remain valid; they do not prove the waived offline condition. Android offline acceptance remains verified.
+- This exception closes only task 01.02. It does not accept A01–A03, waive later authentication/lifecycle/release checks, or complete task 01.08's broader native acceptance. Preserve the unverified iOS offline condition in future gate assessments rather than treating the merge as test evidence.
+- Validation for this closeout: verified GitHub merge and fetched commit; checked the ledger state and exception text; documentation formatting and diff checks only. No code changed and no code/native tests were rerun; prior implementation results remain recorded above.
+- Next-session handoff: task 01.03 is the next roadmap candidate; re-run canonical task discovery and verify its prerequisites before selecting it. No later task was started in this closeout.
