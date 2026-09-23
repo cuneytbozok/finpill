@@ -8,7 +8,13 @@ that setting rejects incoming links. The app accepts only this exact origin and
 known shared routes. Unknown hosts, malformed routes, query strings and fragments
 are rejected. The legacy `/ai` route resolves to `/search`.
 
-The iOS entitlement declares `applinks:finpill.vercel.app`. The exported client
+The prepared iOS entitlement declares `applinks:finpill.vercel.app`. The current
+Personal Team provisioning profile cannot include Associated Domains, so the
+entitlement is intentionally not attached to the App target's signing settings.
+After selecting an Apple Developer Program team that supports the capability,
+add Associated Domains to the **App target** in Xcode and set
+`CODE_SIGN_ENTITLEMENTS` to `App/App.entitlements`. Then verify the signed app
+actually contains this entitlement. The exported client
 contains `/.well-known/apple-app-site-association` for team
 `7NA7D47449` and bundle `com.cuneytbozok.finpill`. The Android manifest has
 verified HTTPS intent filters for company and search paths. Its
@@ -22,7 +28,8 @@ directly over HTTPS with JSON content, without a redirect or auth challenge.
 Preview URLs do not establish ownership of `finpill.vercel.app`. After the
 production deployment, check both file responses and OS domain verification.
 The iOS Associated Domains capability must be enabled for the signed app ID in
-Apple's provisioning setup. An unsigned simulator build proves compilation only.
+Apple's provisioning setup. An unsigned simulator build proves compilation only;
+the current Personal Team cannot provide signed Universal Link evidence.
 
 Acceptance sequence on signed native builds:
 
