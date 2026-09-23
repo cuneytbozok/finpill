@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** Approved research-navigation documentation alignment (BC-18), 2026-09-23.
+**Current task:** 01.08 — research-navigation shell acceptance follow-up, 2026-09-23.
 
-**State:** in_review — blueprint v0.4, roadmap and correction register aligned on `codex/docs-research-navigation`; documentation integration pending. No implementation task started.
+**State:** in_review — BC-18 shell changes and native build evidence are in [PR #14](https://github.com/cuneytbozok/finpill/pull/14); interactive iOS navigation acceptance remains open.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -49,7 +49,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | in_review | PR #8 verified merged on 2026-09-22; merge is not full acceptance. BC-18 now requires three-destination shell/search/AI-entry reconciliation and web/native verification. Broader native acceptance remains outstanding; see current documentation handoff. |
+| 01.08 | in_review | PR #8 merged; BC-18 shell follow-up in [PR #14](https://github.com/cuneytbozok/finpill/pull/14) with web, iOS build/launch, and Android Release evidence. Interactive iOS navigation remains unverified; see handoff. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -464,3 +464,12 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Verification: PASS — `git diff --check`; balanced Markdown fences; newly introduced relative links resolve; all roadmap task IDs/order/dependencies unchanged; obsolete five-destination/global-selector requirements removed; BC-18 is part of the correction table; saved mockup SHA-256 matches the attachment. Prettier excludes `docs/` by repository policy, so its no-op check is not claimed as document validation. Code lint/typecheck/tests and native checks were not rerun (documentation/image only); no new runtime acceptance is claimed.
 - Publication: documentation commit `8408f56`; [PR #13](https://github.com/cuneytbozok/finpill/pull/13) is open for review. This revision must merge into origin/main before it becomes canonical task-discovery input.
 - Next-session handoff: re-run fetch/prune and canonical discovery. Reconcile actionable 01.08 acceptance work first under the existing-task rule, using its existing branch/worktree and merged documentation; do not duplicate the task. Scope that work to revised shell/routing entry behavior and native design-system acceptance, leaving real directory results to 07.01 and AI features to Phase 09. If no actionable 01.08 work can proceed, consider 01.03 after prerequisite verification. Preserve 01.02's iOS offline exception as waived, not passed. Stop this session after documentation verification/publication.
+
+## Task 01.08 BC-18 shell acceptance handoff — 2026-09-23
+
+- Owner: Codex. Continued the existing `codex/01.08-design-system` branch/worktree, moved to `.worktrees/01.08` for writable access and fast-forwarded from verified `origin/main` base `3230c9295afd30af2c74af9c6acae8bdbf964621`. The user's `main` checkout remained unchanged.
+- Deliverables: three primary destinations on mobile and desktop; persistent mobile search control and desktop input with Ctrl/⌘K; focused `/search` detail with return/focus restoration; company-context analysis action; legacy `/ai` replacement to `/search`; static entry pages for fixed routes. Real directory results and AI generation remain later-task scope. No schema, API, authentication, or financial contract changed.
+- Verification: `npm run check` passed under the documented local disabled-integration environment (Prettier, lint, typecheck, 88 tests, client/API builds). Browser verified three desktop destinations, search entry/return focus, and direct `/ai` to `/search`. `npm run native:sync` verified 42 identical static assets in both native projects. iOS Release simulator build, app asset inspection, install and launch passed; [home screenshot](evidence/01.08/ios-home.png) shows safe areas and three destinations. Android Release build and install passed on `emulator-5554`; cold start returned `Status: ok`, `LaunchState: COLD` (984 ms), and package flags omitted `DEBUGGABLE` and `TEST_ONLY`. [Home](evidence/01.08/android-home.png), [Search](evidence/01.08/android-search.png), and [Watchlist](evidence/01.08/android-watchlist.png) screenshots show the revised mobile shell.
+- Remaining acceptance: interactive iOS search, all three destinations, return/focus behavior, and narrow-screen accessibility checks require a working Simulator UI connection or owner run. Simulator visual automation failed with a ScreenCaptureKit stream error; only its launched Home screen was captured. Do not count this as full native acceptance. Hosted preview verification and PR review also remain. A01–A12 remain unaccepted; preserve task 01.02's waived iOS offline exception.
+- Publication: implementation/evidence commit `66521dd`; [PR #14](https://github.com/cuneytbozok/finpill/pull/14) is open for review.
+- Next-session handoff: reconcile PR #14 and finish the remaining 01.08 acceptance on this branch/worktree. If it is only awaiting external review and does not block later work, select the next ready roadmap task under canonical discovery, likely 01.03 after prerequisite verification. Do not duplicate 01.08 or infer any architecture gate passed.

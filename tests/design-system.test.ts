@@ -7,23 +7,31 @@ import {
 } from "../apps/client/src/app/ui-model";
 
 describe("design system model", () => {
-  it("keeps the approved five global mobile destinations", () => {
+  it("keeps the approved three primary destinations", () => {
     expect(navigationItems.map((item) => item.label)).toEqual([
       "Ana Sayfa",
-      "Ara",
       "İzleme",
-      "Yapay Zekâ",
       "Daha Fazla",
     ]);
   });
 
   it("marks only its matching fixed route current", () => {
-    expect(isNavigationCurrent(navigationItems[1]!, { kind: "search" })).toBe(
-      true,
-    );
+    expect(
+      isNavigationCurrent(navigationItems[1]!, { kind: "watchlist" }),
+    ).toBe(true);
     expect(isNavigationCurrent(navigationItems[1]!, { kind: "home" })).toBe(
       false,
     );
+    expect(isNavigationCurrent(navigationItems[0]!, { kind: "search" })).toBe(
+      false,
+    );
+    expect(
+      isNavigationCurrent(navigationItems[0]!, {
+        kind: "company",
+        ticker: "KUYAS",
+        section: "overview",
+      }),
+    ).toBe(false);
   });
 
   it("resolves the system setting without guessing a user preference", () => {
