@@ -112,6 +112,24 @@ a {
 .desktop-sidebar {
   display: none;
 }
+.account-control {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+.account-control button {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+}
+.session-status {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
 .topbar {
   display: flex;
   min-height: 4rem;
@@ -380,6 +398,19 @@ h2 {
   border-radius: 0.5rem;
   color: var(--text-primary);
   text-decoration: none;
+}
+@media (max-width: 359px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .account-control button,
+  .mobile-search {
+    white-space: nowrap;
+  }
 }
 .desktop-search {
   display: none;

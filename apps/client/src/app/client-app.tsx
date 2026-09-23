@@ -1,8 +1,21 @@
 "use client";
 
-import { companyRoute, parseAppRoute } from "@finpill/contracts";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ClerkProvider, SignInButton, UserButton, useAuth } from "@clerk/react";
+import { Capacitor } from "@capacitor/core";
+import {
+  SessionResponseSchema,
+  companyRoute,
+  parseAppRoute,
+} from "@finpill/contracts";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
+import { publicEnvironment } from "@/config/environment";
 import { createClientApi } from "@/runtime/api";
 import { createBrowserPlatform } from "@/runtime/browser-platform";
 
@@ -14,9 +27,11 @@ import {
 } from "./theme-preference";
 import { isNavigationCurrent, navigationItems, resolveTheme } from "./ui-model";
 
-import type { AppRoute } from "@finpill/contracts";
+import type { AppRoute, AuthPort } from "@finpill/contracts";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
 import type { ThemePreference } from "./ui-model";
+
+const subscribePlatform = () => () => {};
 
 function routeTitle(route: AppRoute): string {
   switch (route.kind) {
@@ -197,7 +212,13 @@ function RouteContent({
   );
 }
 
-export function ClientApp() {
+function AppShell({
+  auth,
+  accountControl,
+}: {
+  auth?: AuthPort;
+  accountControl?: ReactNode;
+}) {
   const [route, setRoute] = useState<AppRoute>({ kind: "home" });
   const [desktopSearch, setDesktopSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -211,7 +232,7 @@ export function ClientApp() {
   );
 
   useEffect(() => {
-    const platform = createBrowserPlatform(window);
+    const platform = createBrowserPlatform(window, auth);
     void createClientApi(platform);
     const update = (pathname: string) => {
       if (pathname === "/ai") {
@@ -226,7 +247,7 @@ export function ClientApp() {
     };
     update(platform.navigation.getPathname());
     return platform.navigation.subscribe(update);
-  }, []);
+  }, [auth]);
 
   useEffect(() => {
     if (previousRoute.current === "search" && route.kind !== "search") {
@@ -293,6 +314,7 @@ export function ClientApp() {
           Fin<span className="brand-mark">pill</span>
         </AppLink>
         <div className="topbar-actions">
+          {accountControl}
           <AppLink className="mobile-search" href="/search">
             <span aria-hidden="true">⌕</span> Şirket ara
           </AppLink>
@@ -347,5 +369,84 @@ export function ClientApp() {
         <Navigation route={route} />
       </nav>
     </div>
+  );
+}
+
+function WebAuthApp() {
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  const [verification, setVerification] = useState<{
+    userId: string;
+    status: "verified" | "error";
+  } | null>(null);
+  const auth = useMemo<AuthPort>(
+    () => ({ getAccessToken: () => getToken() }),
+    [getToken],
+  );
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !userId) return;
+    const api = createClientApi(createBrowserPlatform(window, auth));
+    if (!api) return;
+    let active = true;
+    void api
+      .request({ path: "/api/v1/session", response: SessionResponseSchema })
+      .then(({ userId: verifiedUserId }) => {
+        if (active)
+          setVerification({
+            userId,
+            status: verifiedUserId === userId ? "verified" : "error",
+          });
+      })
+      .catch(() => {
+        if (active) setVerification({ userId, status: "error" });
+      });
+    return () => {
+      active = false;
+    };
+  }, [auth, isLoaded, isSignedIn, userId]);
+
+  const sessionStatus =
+    verification?.userId === userId
+      ? verification?.status === "verified"
+        ? "Oturum doğrulandı"
+        : "Oturum doğrulanamadı"
+      : "Oturum doğrulanıyor";
+  const accountControl = (
+    <div className="account-control">
+      {!isLoaded && <span role="status">Oturum yükleniyor</span>}
+      {isLoaded && !isSignedIn && (
+        <SignInButton mode="modal">
+          <button type="button">Giriş yap</button>
+        </SignInButton>
+      )}
+      {isLoaded && isSignedIn && (
+        <>
+          {publicEnvironment.NEXT_PUBLIC_API_ENABLED && (
+            <span aria-live="polite" className="session-status">
+              {sessionStatus}
+            </span>
+          )}
+          <UserButton />
+        </>
+      )}
+    </div>
+  );
+  return <AppShell auth={auth} accountControl={accountControl} />;
+}
+
+export function ClientApp() {
+  // The same static files run in Capacitor; native auth adapters arrive in 01.04/01.05.
+  const isWeb = useSyncExternalStore(
+    subscribePlatform,
+    () => !Capacitor.isNativePlatform(),
+    () => false,
+  );
+  if (!publicEnvironment.NEXT_PUBLIC_AUTH_ENABLED || !isWeb)
+    return <AppShell />;
+  return (
+    <ClerkProvider
+      publishableKey={publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+    >
+      <WebAuthApp />
+    </ClerkProvider>
   );
 }
