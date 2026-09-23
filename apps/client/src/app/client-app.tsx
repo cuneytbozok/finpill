@@ -216,9 +216,11 @@ function RouteContent({
 function AppShell({
   auth,
   accountControl,
+  sessionNotice,
 }: {
   auth?: AuthPort;
   accountControl?: ReactNode;
+  sessionNotice?: ReactNode;
 }) {
   const [route, setRoute] = useState<AppRoute>({ kind: "home" });
   const [desktopSearch, setDesktopSearch] = useState("");
@@ -365,6 +367,11 @@ function AppShell({
           </select>
         </div>
       </header>
+      {sessionNotice && (
+        <div className="session-notice" role="status">
+          {sessionNotice}
+        </div>
+      )}
       <RouteContent route={route} searchPageRef={searchPageRef} />
       <nav aria-label="Mobil ana navigasyon" className="mobile-nav">
         <Navigation route={route} />
@@ -438,6 +445,9 @@ function IOSAuthApp() {
   const [loaded, setLoaded] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [tokenStatus, setTokenStatus] = useState<
+    "checking" | "ready" | "error"
+  >("checking");
   const auth = useMemo<AuthPort>(
     () => ({ getAccessToken: iosClerk.getAccessToken }),
     [],
@@ -485,6 +495,30 @@ function IOSAuthApp() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!loaded || !userId) return;
+    let active = true;
+    const checkToken = async () => {
+      try {
+        const token = await auth.getAccessToken();
+        if (active) setTokenStatus(token ? "ready" : "error");
+      } catch {
+        if (active) setTokenStatus("error");
+      }
+    };
+    const onResume = () => {
+      if (!document.hidden) void checkToken();
+    };
+    void checkToken();
+    const timer = window.setInterval(() => void checkToken(), 60000);
+    document.addEventListener("visibilitychange", onResume);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onResume);
+    };
+  }, [auth, loaded, userId]);
+
   const accountControl = (
     <div className="account-control">
       {!loaded && !error && <span role="status">Oturum yükleniyor</span>}
@@ -502,7 +536,10 @@ function IOSAuthApp() {
           onClick={() =>
             void iosClerk
               .signOut()
-              .then(() => setUserId(null))
+              .then(() => {
+                setUserId(null);
+                setTokenStatus("checking");
+              })
               .catch(() => setError(true))
           }
           type="button"
@@ -512,7 +549,20 @@ function IOSAuthApp() {
       )}
     </div>
   );
-  return <AppShell auth={auth} accountControl={accountControl} />;
+  const sessionNotice = userId
+    ? tokenStatus === "ready"
+      ? "Oturum hazır"
+      : tokenStatus === "error"
+        ? "Oturum yenilenemedi"
+        : "Oturum doğrulanıyor"
+    : undefined;
+  return (
+    <AppShell
+      auth={auth}
+      accountControl={accountControl}
+      sessionNotice={sessionNotice}
+    />
+  );
 }
 
 export function ClientApp() {

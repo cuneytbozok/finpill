@@ -130,6 +130,12 @@ a {
   font-size: 0.8rem;
   white-space: nowrap;
 }
+.session-notice {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding: 0.25rem 1rem;
+  background: var(--surface);
+}
 .topbar {
   display: flex;
   min-height: 4rem;
