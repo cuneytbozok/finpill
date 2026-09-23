@@ -23,7 +23,7 @@ Only run that statement for an explicitly approved account. The application and 
 
 ## Verification and remaining acceptance
 
-- Disposable local database replay and pgTAP coverage are in `supabase/tests/clerk_profiles_rls.test.sql`; run `npm run db:test` on a host with Docker.
+- Disposable database replay and pgTAP coverage are in `supabase/tests/clerk_profiles_rls.test.sql`. This host has no Docker; PR #20's Docker-backed CI `database` job passed `npm run db:test` on commit `fb7d869`.
 - On 2026-09-23, the owner-designated staging project had no existing application tables or migrations. The foundation and task 01.06 migrations were applied. A rollback-only SQL probe under `authenticated` and `anon` roles passed owner isolation, reassignment denial, disabled eligibility, and anonymous denial; the security advisor returned no lints.
 - Direct staging Data API requests with no token and a malformed token returned `401`. Real active Clerk session tokens carried `role=authenticated`, returned `200` with zero profile rows, and received `403` when trying to insert a profile while the account remained pilot-ineligible. After the owner explicitly approved a grant for the sole existing invited development account, its eligibility row was enabled. The same account then received `200` for its eligibility and profile reads, `201` for profile creation, and `200` for a profile update; an attempted ownership reassignment returned `403`. No token or account identifier was logged.
 - The local API returned `401` for unsigned and invalid bearer requests and `403` for an untrusted origin. Backend-minted Clerk tokens lack the `azp` claim required by the existing API verifier, so they cannot stand in for web-issued bearer tokens in API acceptance.
