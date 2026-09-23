@@ -1,6 +1,7 @@
 import { registerPlugin } from "@capacitor/core";
 
 interface ClerkState {
+  isLoaded: boolean;
   userId: string | null;
 }
 

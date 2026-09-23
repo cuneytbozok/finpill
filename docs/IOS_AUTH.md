@@ -6,7 +6,7 @@ The Xcode project pins `clerk-ios` 1.3.9 and now targets iOS 17 or later, the SD
 
 ## Development instance setup
 
-1. In the existing development Clerk instance, enable the Native API and register the iOS application using bundle ID `com.cuneytbozok.finpill` and the App ID Prefix of the signing team. Confirm Invite-only access remains selected. Do not place a secret key in the client or Xcode project.
+1. The owner confirmed that the existing development Clerk instance has Native API enabled, the iOS application registered with bundle ID `com.cuneytbozok.finpill` and App ID Prefix `7NA7D47449`, and `com.cuneytbozok.finpill://callback` allowlisted. The screenshot also shows Invite-only mode. Do not place a secret key in the client or Xcode project.
 2. The owner selected Personal Team `7NA7D47449` for the App target's Debug and Release configurations in Xcode, with automatic signing. Verify provisioning with an actual signed device build; the unsigned simulator build does not prove it. Codex did not edit the signing setting.
 3. Follow Clerk's iOS quickstart for the instance's `webcredentials:` associated domain when testing flows that require it. The project has no confirmed frontend API domain or associated-domain entitlement yet; universal/app links belong to task 01.07.
 4. Set the ignored `apps/client/.env.local` values described in [WEB_AUTH.md](WEB_AUTH.md), including `NEXT_PUBLIC_AUTH_ENABLED=true` and the development publishable key. Build and sync the static client with `npm run native:sync`, then build the Xcode App target in Release mode. Never commit the local environment file.

@@ -103,6 +103,9 @@ public final class FinpillClerkPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @MainActor
     private func currentState() -> [String: Any] {
-        ["userId": Clerk.shared.user?.id as Any? ?? NSNull()]
+        [
+            "isLoaded": Clerk.shared.isLoaded,
+            "userId": Clerk.shared.user?.id as Any? ?? NSNull(),
+        ]
     }
 }

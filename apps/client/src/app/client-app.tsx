@@ -449,8 +449,9 @@ function IOSAuthApp() {
       try {
         const state = await iosClerk.state();
         if (active) {
+          setLoaded(state.isLoaded);
           setUserId(state.userId);
-          setError(false);
+          if (state.isLoaded) setError(false);
         }
       } catch {
         if (active) setError(true);
@@ -459,29 +460,34 @@ function IOSAuthApp() {
     void iosClerk
       .initialize(publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!)
       .then(() => {
-        if (active) {
-          setLoaded(true);
-          void refresh();
-        }
+        if (active) void refresh();
       })
       .catch(() => {
-        if (active) {
-          setLoaded(true);
-          setError(true);
-        }
+        if (active) setError(true);
       });
     const timer = window.setInterval(() => void refresh(), 1500);
+    const timeout = window.setTimeout(() => {
+      void iosClerk
+        .state()
+        .then((state) => {
+          if (active && !state.isLoaded) setError(true);
+        })
+        .catch(() => {
+          if (active) setError(true);
+        });
+    }, 15000);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       active = false;
       window.clearInterval(timer);
+      window.clearTimeout(timeout);
       document.removeEventListener("visibilitychange", refresh);
     };
   }, []);
 
   const accountControl = (
     <div className="account-control">
-      {!loaded && <span role="status">Oturum yükleniyor</span>}
+      {!loaded && !error && <span role="status">Oturum yükleniyor</span>}
       {error && <span role="alert">Oturum kullanılamıyor</span>}
       {loaded && !error && !userId && (
         <button
