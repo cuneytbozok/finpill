@@ -1,9 +1,9 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.08 — research-navigation shell acceptance closeout, 2026-09-23.
+**Current task:** 01.03 — Clerk web authentication and API bearer verification, 2026-09-23.
 
-**State:** complete — BC-18 shell changes in [PR #14](https://github.com/cuneytbozok/finpill/pull/14) are merged; interactive iOS navigation and narrow-screen review passed. See closeout handoff below.
+**State:** in_review — development-instance web sign-in/out, invite-only mode, and protected API acceptance passed locally; implementation awaits PR review and merge. See handoff below.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -44,7 +44,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 |---|---|---|
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
 | 01.02 | complete | PR #11 merged as `4243be4`. Release builds/artifacts, iOS home/search and Android offline runtime verified. Owner waived the unperformed iOS offline check; see closeout exception below. |
-| 01.03 | pending | — |
+| 01.03 | in_review | Development Clerk instance, web sign-in/out, signed bearer access, negative token cases, and local builds verified; see handoff. Review/merge pending. |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
@@ -482,3 +482,13 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Narrow-screen secondary-text check: the rendered phone UI showed complete navigation labels and secondary copy. The committed light-theme secondary token `#5d6977` has contrast ratios of 5.60:1 on white, 5.27:1 on the page background, and 5.03:1 on the muted surface; the dark-theme secondary token `#b3c0cc` has 8.78:1 on its surface and 7.76:1 on its muted surface. These exceed the 4.5:1 normal-text threshold. This check uses the existing iPhone 17 Pro viewport; it does not claim a separate 320-pixel device run.
 - Prior PR #14 evidence covers web shell/search behavior, Android Release cold start and navigation, both native builds and packaged assets, and the 88-test full check. This closeout changes documentation only; code lint, typecheck, tests, and native builds were not rerun. `git diff --check` and document checks validate this update.
 - No contracts, migrations, product data features, or architecture gates changed. Task 01.02's waived iOS offline check remains waived rather than passed. Next session: re-run canonical discovery and verify Clerk access prerequisites for task 01.03 before implementation. Do not start 01.03 in this session.
+
+## Task 01.03 implementation handoff — 2026-09-23
+
+- Owner: Codex; worktree `.worktrees/01.03`, branch `codex/01.03-clerk-web-auth`, base `813017f` from verified `origin/main` after PR #15 merged. Implementation commit `5c459d2` is in [PR #16](https://github.com/cuneytbozok/finpill/pull/16). The user's `main` checkout was not changed.
+- Deliverables: pinned `@clerk/react` web adapter behind the existing `AuthPort`, with sign-in and account controls only on the web runtime of the shared static bundle; pinned `@clerk/backend` bearer verifier on the separate API; `GET /api/v1/session` protected endpoint with explicit browser-origin handling and no-store responses; typed session response contract; [web auth guide](WEB_AUTH.md) and updated access/environment documentation. No migration, native auth adapter, RLS policy, pilot eligibility rule, or architecture gate changed.
+- Clerk evidence: the owner supplied a development-instance issuer and keys through ignored local environment files. The Backend API returned instance `ins_3JhfrCFuR2VJKzxOXqdjUbaZ1lw` as development; the dashboard showed Invite-only access selected. An invited account signed in through the local web UI, the client displayed “Oturum doğrulandı” after a `200` bearer response from the separate API, and sign-out restored “Giriş yap.” The owner entered the password; no credential value was copied into code, commands, fixtures, or this handoff. An uninvited sign-up was not attempted; the dashboard setting is the invitation restriction evidence.
+- Negative verification: real Clerk JWT verification against generated RSA fixtures rejected unsigned, malformed, expired, future, wrong-issuer, wrong-authorized-party, missing-authorized-party, missing-session, and tampered requests (11 auth tests). Live local API returned `401` for unsigned and invalid bearer requests, `403` for an unknown browser origin, and `204` with only the allowed origin/Authorization header for valid preflight. The client and API builds remained separate.
+- Full `npm run check` passed on pinned Node 24.21.0/npm 11.19.0: Prettier, zero-warning lint, strict typecheck, 99 tests, static client export, and API build. `npm run test:environment-build` passed isolated from ignored local env files: invalid-build/runtime checks, production liveness, and 43-file static scan. An additional 43-file scan found no server secret value in the client export. Browser checks showed the sign-in modal, no framework overlay in the isolated browser, and complete controls without horizontal overflow at 390 and 320 CSS pixels. A Chrome extension caused a development-only hydration warning by adding an attribute to `<html>`; it did not occur in the isolated browser run.
+- Deployment blocker outside local 01.03 acceptance: the owner reported a Vercel production build of `813017f` failing because a `pk_test_` value is present in Production, while `NEXT_PUBLIC_APP_ENV=production` requires a live key even when the key is merely supplied. The Vercel page showed both Clerk keys scoped to All Environments. Automatic approval review rejected changing the Production scope; the owner then chose to keep both keys in All Environments for now. No Vercel scope was changed by Codex. That production build remains unverified and must be corrected with approved environment isolation or live pilot keys before 01.09/01.10; do not weaken the production-key validation or count this as A03 evidence.
+- PR #16 is open, mergeable, and awaiting CI/review. Its Vercel Preview status initially reported success; hosted authentication and Production remain unverified. After acceptance/merge, re-run canonical discovery; 01.04 is the next roadmap candidate, subject to its native SDK and release-mode prerequisites. Keep the 01.02 iOS offline waiver and A01–A12 unaccepted.

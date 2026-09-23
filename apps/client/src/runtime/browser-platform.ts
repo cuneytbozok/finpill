@@ -34,9 +34,12 @@ export function createBrowserNavigation(windowObject: Window): NavigationPort {
   };
 }
 
-export function createBrowserPlatform(windowObject: Window): ClientPlatform {
+export function createBrowserPlatform(
+  windowObject: Window,
+  auth: AuthPort = anonymousAuth,
+): ClientPlatform {
   return {
-    auth: anonymousAuth,
+    auth,
     navigation: createBrowserNavigation(windowObject),
   };
 }

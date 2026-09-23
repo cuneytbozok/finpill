@@ -36,3 +36,4 @@ export type {
   ApiTransport,
   CreateApiTransportOptions,
 } from "./transport";
+export { SessionResponseSchema } from "./auth";

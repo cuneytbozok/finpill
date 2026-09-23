@@ -17,7 +17,7 @@ Task 00.04 adds fail-closed configuration validation. It does not provision serv
 | Public build settings | Copied local example | Set in client deployment before build | Set in client deployment before build; also frozen into native assets |
 | Secrets | API `.env.local`, ignored | API deployment secret store | API deployment secret store |
 
-An origin is exactly `scheme://host[:port]`, with no credentials, trailing slash, path, query or fragment. Hosted origins must use HTTPS and a DNS hostname; local hostnames and IP literals are rejected. `CLIENT_ORIGINS` is configuration for the future API transport/CORS implementation; it does not enforce CORS yet. Native application identifiers and allowed native origins remain A01/A03 evidence work.
+An origin is exactly `scheme://host[:port]`, with no credentials, trailing slash, path, query or fragment. Hosted origins must use HTTPS and a DNS hostname; local hostnames and IP literals are rejected. `CLIENT_ORIGINS` allows browser origins on the protected 01.03 session route and is also passed to Clerk's authorized-party token check. Other API routes must implement their own CORS policy when introduced. Native application identifiers and allowed native origins remain A01/A03 evidence work.
 
 No URL or credential falls back to a development service. An explicit HTTPS URL cannot prove project ownership, source entitlement or whether a remote project contains pilot data: record those identities and access evidence in task 00.06. Review staging and production assignments before deployment.
 
