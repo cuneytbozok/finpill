@@ -19,22 +19,10 @@ export const navigationItems: readonly NavigationItem[] = [
     icon: "⌂",
   },
   {
-    href: routePath({ kind: "search" }),
-    label: "Ara",
-    route: "search",
-    icon: "⌕",
-  },
-  {
     href: routePath({ kind: "watchlist" }),
     label: "İzleme",
     route: "watchlist",
     icon: "☆",
-  },
-  {
-    href: routePath({ kind: "ai" }),
-    label: "Yapay Zekâ",
-    route: "ai",
-    icon: "✦",
   },
   {
     href: routePath({ kind: "settings" }),

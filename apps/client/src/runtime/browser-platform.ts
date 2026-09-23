@@ -19,7 +19,7 @@ export function createBrowserNavigation(windowObject: Window): NavigationPort {
       return windowObject.location.pathname;
     },
     navigate(pathname) {
-      windowObject.history.pushState(null, "", pathname);
+      windowObject.history.pushState({ finpillNavigation: true }, "", pathname);
       windowObject.dispatchEvent(new Event(NAVIGATION_EVENT));
     },
     subscribe(listener: NavigationListener) {
