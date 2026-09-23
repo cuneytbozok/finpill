@@ -3,7 +3,7 @@
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
 **Current task:** 01.02 — Capacitor iOS/Android shells and bundled-asset proof.
 
-**State:** ready — local application IDs and signing approach are owner-confirmed; native implementation and acceptance have not started.
+**State:** in_review — both Release builds, compiled-asset inspection and Android offline runtime pass; owner will perform the remaining iOS offline check.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
@@ -43,13 +43,13 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | Task | State | Evidence / handoff |
 |---|---|---|
 | 01.01 | complete | PR #7 merged as `9e2185b`; verified from fetched `origin/main`. See handoff. |
-| 01.02 | ready | Owner confirmed both `com.cuneytbozok.finpill` IDs and local development signing; store enrollment is not a 01.02 prerequisite. Native proof remains unstarted. See readiness reassessment below. |
+| 01.02 | in_review | Both Release artifacts pass inspection; iOS home/search and Android offline cold-start/home/search verified. Owner-selected manual iOS offline check remains. See runtime acceptance handoff. |
 | 01.03 | pending | — |
 | 01.04 | pending | — |
 | 01.05 | pending | — |
 | 01.06 | pending | — |
 | 01.07 | pending | — |
-| 01.08 | in_review | [Draft PR #8](https://github.com/cuneytbozok/finpill/pull/8) is open and unmerged; native acceptance remains after 01.02. Its branch carries the detailed handoff. |
+| 01.08 | in_review | PR #8 is verified merged; the prior open/draft description was stale. Native acceptance remains after 01.02, so merge alone is not full acceptance. |
 | 01.09 | pending | — |
 | 01.10 | pending | — |
 
@@ -404,3 +404,41 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Roadmap clarification: the private-use signing/store rule is explicit in [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md) without changing task 01.02's deliverables or acceptance checks.
 - Verification: compared the approved 01.02 roadmap row with owner-provided identifiers and official Capacitor, Apple and Android local-run/signing guidance. No native project, build, simulator, device, secret, migration or architecture gate was created or verified by this documentation update.
 - Next action: start 01.02 in a new isolated implementation worktree from verified `origin/main` after this readiness correction merges. Preserve 01.08's draft review state; its native acceptance can follow the 01.02 shell proof. Clerk instance access remains a separate 01.03 prerequisite.
+
+## Task 01.02 implementation handoff
+
+- Owner: Codex; branch `codex/01.02-capacitor-shells`; worktree `/private/tmp/finpill-01-02-capacitor`.
+- Base: verified `origin/main` at `60407d6`; existing user checkout preserved.
+- Scope: bundled static client in Capacitor iOS/Android projects, release configuration and native acceptance evidence.
+- Deliverables: pinned Capacitor 8.5.2 native projects, SPM lock, shared `out` asset input, disabled WebView debugging, opt-in Android local signing for non-debuggable Release builds, build/sync/inspection commands and CI static asset check. [Native build guide](NATIVE_SHELLS.md) contains reproducible commands and acceptance steps.
+- Verification: `npm run check` passed formatting, zero-warning lint, typecheck, 88 tests and both builds. `npm run test:environment-build` passed invalid-config/runtime, production-liveness and secret-canary checks (22 static files). Production client export and native sync passed; both staged bundles match all 22 exported files by hash. These are staged assets, not compiled native artifact acceptance.
+- Negative artifact checks: temporary copied bundles with stale entry content, `.next` output, a remote shell URL and a synthetic secret pattern were each rejected.
+- Native attempts: Xcode 26.6 resolved Capacitor Swift 8.5.2 but both generic and existing iOS 26.2 simulator Release destinations failed with “iOS 26.5 is not installed”; install/repair it in Xcode → Settings → Components. Android `./gradlew assembleRelease -PfinpillLocalSigning` failed because no Java runtime exists; Android Studio and the default SDK directory are absent.
+- User action: install/repair Xcode's requested iOS platform; install Android Studio (2025.2.1+), its JDK, API 36 SDK/build tools and an emulator via SDK/Device Manager. Configure local Java/SDK paths outside the repository. No credentials, paid store enrollment or chat secrets are required. Then resume this same branch for Release builds, actual artifact inspection and offline cold starts on both platforms.
+- No architecture gate is accepted; A01–A03 remain unaccepted. No migration, financial logic, auth adapter, API origin contract or deep-link integration changed. 01.08's merged PR still has outstanding native acceptance; its stale open/draft ledger description was reconciled without claiming that acceptance passed.
+- Next action: remain on 01.02 until tooling and native acceptance are complete. No later task was started. Implementation commit `20f821a`, generated whitespace correction `cded9e8`; [draft PR #11](https://github.com/cuneytbozok/finpill/pull/11).
+
+
+## Task 01.02 restart handoff — 2026-09-23
+
+- Resume the existing `/private/tmp/finpill-01-02-capacitor` worktree on `codex/01.02-capacitor-shells`, PR #11. Do not create duplicate work. Fetched `origin/main` remains `60407d6`; its ready/unstarted ledger is stale relative to this verified branch. Current committed HEAD is `890a8ce`; this session’s viewport fix, guide and evidence are uncommitted at the owner-requested restart checkpoint.
+- Owner reported native tooling installed. Xcode 26.6 / iOS SDK 26.5 now builds the simulator Release app successfully. Android Studio bundles Java 25, which fails Gradle 8.14.3 with class-file major version 69. Downloaded official Temurin JDK 21 into `/tmp/finpill-jdk21/jdk-21.0.12.1+1/Contents/Home`; using it makes Android Release compilation pass.
+- Installed SDK platform 36 and build tools 35.0.0. Owner explicitly approved accepting the Google APIs ARM emulator-image license; API 36 image installation completed. Official ARM command-line tools 22.0 checksum verified and installed in `~/Library/Android/sdk/cmdline-tools/22.0`. Created dedicated `Finpill_API_36` (Pixel 7); emulator startup is in progress, not yet runtime acceptance.
+- Native screenshot exposed header/status-bar overlap. Added typed `viewportFit: "cover"` export in the shared Next.js layout so existing CSS safe-area insets apply. Rebuilt iOS screenshot visibly clears the status bar; tapping Search displays “Ara”. No dev server was listening on 3000/3001 at verification. Captured final home evidence in [ios-home.png](evidence/01.02/ios-home.png); earlier corrected search screenshot remains `/tmp/finpill-ios-search.png`.
+- Code checks passed after the viewport change: formatting, zero-warning lint, typecheck, 88 tests (7 files), both Next.js builds. Log: `/tmp/finpill-native-resume-check.log`. Initial attempts without required environment values, then with unsupported `test` app environment, failed configuration validation; rerun with the established CI `local` environment passed.
+- After checks, ran one final production sync with API/auth disabled and rebuilt both native artifacts. `node tools/check-native-assets.mjs /tmp/finpill-ios-release/Build/Products/Release-iphonesimulator/App.app /tmp/finpill-apk-final/assets` passed all 22 exported asset hashes and native configuration for both compiled artifacts. Do not rebuild the web export alone before repeating inspection: generated build IDs change and require another sync/native rebuild.
+- Android APK: `apps/client/android/app/build/outputs/apk/release/app-release.apk`, SHA-256 `daf847dba6d28a4140978dab031d3a753d04ad04c68d89042f155474887ddf95`. Compiled manifest has no debuggable/testOnly attribute (default false); additionally verify installed application flags. iOS Release app: `/tmp/finpill-ios-release/Build/Products/Release-iphonesimulator/App.app`; executable SHA-256 `c9302ac2af613c14cc022c5d0c24a7870b7ee9f12bfd702edf5bf5417b4c00d7`; bundled `public/index.html` SHA-256 `97b751faf91b8c342134f79a8bb0ecec4f92a4a7eceda804c6394ff6436655f3`.
+- Logs: `/tmp/finpill-ios-release-build.log`, `/tmp/finpill-android-release-build.log`, `/tmp/finpill-native-resume-sync.log`, `/tmp/finpill-sdk-image-install.log`, `/tmp/finpill-emulator.log`. Node/npm toolchain: `/tmp/finpill-toolchain/node-v24.21.0-darwin-arm64/bin`. iOS simulator UDID: `FB422F68-22F0-4137-BDB4-B4853BA67DE2`. Android serial was `emulator-5554`; recheck boot status after restart.
+- Pause reason: desktop UI capture intermittently fails with ScreenCaptureKit error `-3811`. Owner offered to close/reopen Codex to apply permissions and asked to wait. No native runtime check is substituted with a mock. Simulator command-line access works; normal iOS rendering/search was observed during a period when UI automation recovered.
+- Remaining: install final APK on the booted emulator; verify non-debuggable Release flags, cold-start home and Search navigation; verify offline cold starts and asset loading on both platforms; save screenshots/outcomes, update acceptance state, commit and push PR #11 changes. A question requesting permission to briefly disconnect/restore Mac Wi-Fi for the iOS offline proof is still unanswered; **do not disconnect the host network without that approval**. No host network settings have been changed. Android offline checks can use its dedicated emulator. Re-read current PR status before publishing. A01–A03 remain unaccepted, 01.08 acceptance remains separate, and no later task was started.
+
+
+## Task 01.02 runtime acceptance handoff — 2026-09-23
+
+- Resumed after Codex restart in the same worktree/branch. Fetched origin and verified PR #11 remains open/draft; the canonical ledger still understates the implemented task. No new task or worktree was started.
+- Both final compiled artifacts were re-inspected successfully against all 22 production-export assets; hashes recorded above remain the artifact identities. No implementation changes were made after the passing 88-test full check.
+- Android: installed the locally signed, non-debuggable Release APK on `Finpill_API_36`, Pixel 7 / Google APIs ARM64 / API 36. Package flags contain `HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP` and do not contain `DEBUGGABLE` or `TEST_ONLY`. Normal cold start returned `Status: ok`, `LaunchState: COLD` (1827 ms), and the home screen rendered. No server listened on ports 3000/3001.
+- Android offline: disabled Wi-Fi and mobile data only inside the dedicated emulator. `dumpsys connectivity` reported `Active default network: none`, and a network probe failed with `Network is unreachable`. Force-stop/relaunch returned `Status: ok`, `LaunchState: COLD` (599 ms). Home rendered and tapping Search displayed “Ara”. Saved [home](evidence/01.02/android-home.png), [offline home](evidence/01.02/android-offline-home.png), and [offline search](evidence/01.02/android-offline-search.png). Restored emulator Wi-Fi/mobile data afterward. Owner explicitly authorized ADB interaction when the UI tool could not attach to the standalone emulator.
+- iOS: Release cold-start rendering and Search navigation passed with no development server, including corrected safe-area spacing. Saved [home](evidence/01.02/ios-home.png) and [search](evidence/01.02/ios-search.png). The Search capture uses the same corrected source before the final export rebuild; it is navigation/layout evidence, while the final artifact hashes independently prove packaging.
+- Remaining acceptance: owner chose to perform the iOS offline test manually instead of authorizing host-network changes. Disconnect the Mac’s Wi-Fi, fully quit/reopen Finpill in the iPhone 17 Pro simulator, verify home and Search render, reconnect and report the outcome. No host network setting was changed by Codex. Do not mark this check passed without the owner’s result or equivalent observed evidence.
+- Publication: PR #11 remains draft pending that result. Safe-area fix and native evidence were committed and pushed as `ca90824`; the PR description now reflects the verified runtime outcomes. Once the iOS offline result is recorded, finish 01.02 acceptance and review handoff; do not start another task in this session. No architecture gate is accepted, and 01.08’s broader native design-system acceptance is not claimed complete.

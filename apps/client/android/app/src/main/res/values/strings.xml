@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Finpill</string>
+    <string name="title_activity_main">Finpill</string>
+    <string name="package_name">com.cuneytbozok.finpill</string>
+    <string name="custom_url_scheme">com.cuneytbozok.finpill</string>
+</resources>
