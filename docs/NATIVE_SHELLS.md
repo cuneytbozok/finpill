@@ -32,10 +32,9 @@ both integrations disabled, so no development/API server is required.
 ## iOS Release
 
 Prerequisites: Xcode 26+ with its matching iOS platform components and an
-available simulator runtime. This host has Xcode 26.6 and existing iOS 26.2
-simulators, but Xcode refuses build destinations and explicitly reports that
-the iOS 26.5 platform is not installed. In **Xcode → Settings → Components**,
-install/repair the requested iOS platform, then verify a simulator is available.
+available simulator runtime. Verified on Xcode 26.6 with the iOS 26.5 SDK and
+iPhone 17 Pro simulator. Install matching platform components in
+**Xcode → Settings → Components** when a build destination is unavailable.
 
 ```sh
 xcodebuild -project apps/client/ios/App/App.xcodeproj -scheme App \
@@ -51,12 +50,14 @@ Capabilities. Do not commit private signing material.
 
 ## Android Release
 
-Prerequisites: Android Studio 2025.2.1+ (including its Java runtime), SDK
-platform 36, required build tools, and an emulator/system image or owned device.
-None of Android Studio, Java or the default SDK directory was found on this
-host. Install Android Studio, complete its SDK setup, select API 36 in
-**Tools → SDK Manager**, and create a device in **Tools → Device Manager**.
-Set `JAVA_HOME` to the installed JDK and `ANDROID_HOME` to the SDK locally.
+Prerequisites: Android Studio 2025.2.1+, **JDK 21**, SDK platform 36, build
+tools 35.0.0, and an ARM emulator/system image or owned device. Set `JAVA_HOME`
+to JDK 21 and `ANDROID_HOME` to the SDK locally. Recent Android Studio versions
+may bundle Java 25, which fails with this project’s Gradle 8.14.3
+(`Unsupported class file major version 69`). Use JDK 21 for this project;
+do not change the project’s Gradle version merely to match Studio’s runtime.
+Select API 36 in **Tools → SDK Manager** and create a device in
+**Tools → Device Manager**. Accept required image licenses locally.
 
 ```sh
 cd apps/client/android
@@ -65,12 +66,18 @@ cd apps/client/android
 
 `finpillLocalSigning` opts into the local debug keystore for installation of a
 non-debuggable Release build; without it, release signing remains unconfigured.
-This is the approved private-use proof, not store signing. Unzip the resulting
-`app/build/outputs/apk/release/app-release.apk` into a temporary directory and
-run `node tools/check-native-assets.mjs <extracted-directory>/assets` from the
-repository root. Inspect the merged manifest for `debuggable=false` too.
+This is the approved private-use proof, not store signing. Extract `assets/*`
+from `app/build/outputs/apk/release/app-release.apk` into a fresh temporary
+directory and run `node tools/check-native-assets.mjs <extracted-directory>/assets`
+from the repository root. Extracting only assets avoids unrelated Android
+resource-name collisions on case-insensitive macOS filesystems. Inspect the
+manifest/application flags to confirm the Release build is not debuggable.
 
-## Required acceptance after tooling is ready
+Build both native artifacts after the **same final** production sync. Next.js
+build identifiers change on a rebuild, so rebuilding the web export afterward
+requires rebuilding the native artifacts before comparing hashes.
+
+## Required runtime acceptance
 
 1. Build both Release artifacts and inspect the actual `.app` and extracted APK.
 2. Stop any web development/static server. Install each artifact locally.
@@ -80,8 +87,11 @@ repository root. Inspect the merged manifest for `debuggable=false` too.
 5. Record device/runtime, build mode, artifact identity, screenshots/logs and
    outcomes in `TASK_STATUS.md`. Do not mark 01.02 complete from sync alone.
 
-No secrets or store-account enrollment are needed to unblock this proof. Tell
-Codex when platform setup is complete so the same task branch can resume.
+The shared layout exports `viewportFit: "cover"` so its CSS safe-area padding
+receives native insets. Verify the header clears the status bar and bottom
+navigation clears the home indicator on each platform.
+
+No secrets or store-account enrollment are needed for this local proof.
 
 Documentation checked through Context7: [Capacitor environment setup](https://capacitorjs.com/docs/getting-started/environment-setup),
 [SPM setup](https://capacitorjs.com/docs/ios/spm), and
