@@ -28,3 +28,9 @@ enabled = false
 
 [analytics]
 enabled = false
+
+# Development Clerk instance. Hosted staging must configure the same integration
+# through Supabase Third-Party Auth before accepting Clerk session tokens.
+[auth.third_party.clerk]
+enabled = true
+domain = "ample-chicken-233.clerk.accounts.dev"
