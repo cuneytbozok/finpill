@@ -1,8 +1,8 @@
 # BIST Fundamental Intelligence Platform
 ## Project Blueprint / Technical Product Specification
 
-**Version:** 0.3  
-**Status:** Implementation-ready product + architecture baseline  
+**Version:** 0.4
+**Status:** Product + architecture baseline; v0.4 applies only the approved research-navigation revision (BC-18). Other registered corrections and architecture gates remain outstanding.
 **Primary market:** Borsa İstanbul (BIST)  
 **Primary data source:** KAP / MKK API  
 **Product direction:** Fundamental-first equity intelligence platform with AI-assisted interpretation. Technical analysis is a later phase.
@@ -1315,42 +1315,23 @@ Responsive breakpoints should use the Tailwind defaults initially unless a real 
 
 ## 22.3 Primary navigation
 
-### Mobile bottom navigation
+### Mobile bottom navigation and desktop sidebar
 
-Use five primary destinations:
-
-```text
-Home
-Search
-Watchlist
-AI
-More
-```
-
-Rules:
-
-- maximum five bottom-navigation items
-- selected item must be visually obvious
-- company-specific tabs do not belong in the global bottom navigation
-- tapping the already selected item may return to the root of that section
-
-### Desktop sidebar
-
-Desktop uses the same information architecture:
+Use exactly three primary destinations on both platforms:
 
 ```text
-Home
-Search
-Watchlist
-AI
-────────
-Discover        [later]
-Screener        [later]
-────────
-Settings
+Ana Sayfa  → /
+İzleme     → /watchlist
+Daha Fazla → /settings
 ```
 
-The sidebar may be collapsible, but navigation labels should not depend solely on icons.
+- Search is a persistent global control, not a primary navigation item.
+- AI analysis and Q&A are reached in company context, not through a global AI destination.
+- Navigation labels must remain visible; selected state must identify the actual primary destination.
+- Company pages and focused search are detail destinations: do not label them as the home screen or mark Home as their current page. Provide a clear back/return action; a direct entry without history returns to Home.
+- Company-specific tabs do not belong in global navigation.
+- Tapping an already selected primary item may return to its root.
+- Discover and Screener remain deferred; this revision does not add them to MVP.
 
 ## 22.4 Route map
 
@@ -1360,7 +1341,6 @@ Recommended user-facing routes:
 /
 /search
 /watchlist
-/ai
 /settings
 
 /company/[ticker]
@@ -1369,6 +1349,10 @@ Recommended user-facing routes:
 /company/[ticker]/disclosures
 /company/[ticker]/ai
 ```
+
+`/search` remains addressable even though it has no primary-navigation tab. `/company/[ticker]/ai` is the company analysis/Q&A detail destination, reached through explicit actions rather than a fifth company tab.
+
+The existing `/ai` route is a compatibility entry only: replace it with `/search` without inferring a company, generating analysis, or adding a new global AI selector. Preserve normal browser/native back behavior without a redirect loop. Company AI deep links remain supported.
 
 Optional nested URLs for sharable state:
 
@@ -1385,13 +1369,13 @@ The authenticated shell should provide:
 
 ```text
 Navigation
-Global company search shortcut
+Persistent global company search control
 Theme control
 Freshness / system status entry where relevant
 User/settings entry
 ```
 
-Desktop may support keyboard shortcut:
+Desktop provides a visible search input and keyboard shortcut:
 
 ```text
 ⌘K / Ctrl+K → global company search
@@ -1427,7 +1411,9 @@ Latest KAP         Financial Report
 
 ## 22.7 Search
 
-Search is primarily company/ticker discovery in MVP.
+Search is primarily company/ticker discovery in MVP. Desktop uses the persistent input with a results dropdown and keyboard access; mobile opens a focused `/search` view from the persistent search control. The addressable search view must also work on desktop and direct entry. Support results, recent searches, loading, empty and error states. Dismissing a dropdown restores focus; leaving the focused view restores the prior screen, with Home as the direct-entry fallback. Selecting a result opens its company overview.
+
+Task 01.08 owns the shell entry and focus behavior; task 07.01 supplies real directory results. No directory or AI backend is required to prove the foundation shell.
 
 Search input should match:
 
@@ -1487,10 +1473,9 @@ Overview
 Financials
 Ratios
 KAP & Events
-AI
 ```
 
-On mobile this can be a horizontally scrollable sticky tab bar. On desktop it can be a tab row below the company header.
+These four visible tabs are Genel Bakış, Finansallar, Oranlar and KAP & Olaylar. Analysis and Q&A use contextual actions below. On mobile this can be a horizontally scrollable sticky tab bar. On desktop it can be a tab row below the company header.
 
 ### Company header
 
@@ -1513,12 +1498,16 @@ Do not block the whole company page when market-price data is unavailable. Funda
 Recommended order:
 
 ```text
-1. Key financial metrics
-2. What Changed?
+1. What Changed? / Ne Değişti?
+2. Key financial metrics
 3. Financial trend charts
 4. Valuation snapshot
 5. Latest important KAP events
 ```
+
+“Detaylı analiz” opens the saved company analysis. “Bu şirket hakkında sor” opens company Q&A with the company already selected. Each AI takeaway must expose the supporting financial values or KAP disclosures through validated references. Distinguish facts from interpretation.
+
+Before AI is available, show an honest unavailable/empty module state and keep financial modules usable; never substitute sample analysis as live output.
 
 Key metrics:
 
@@ -1539,6 +1528,8 @@ YoY change
 QoQ change
 small historical sparkline
 ```
+
+Show the actual reporting period and comparison basis beside each value/change. Distinguish standalone quarter, cumulative, annual and TTM; avoid ambiguous labels such as “2024/3”. Turkish labels such as “2024 · 3. çeyrek” or “2024 · İlk 9 ay” are examples only and must reflect actual source dates, including non-calendar fiscal periods. Margin deltas use percentage points, not percent growth. Unsupported comparisons show an explanation instead of a computed change.
 
 ### Financials
 
@@ -1627,7 +1618,9 @@ The original disclosure remains the source of truth.
 
 ### AI
 
-AI is company-scoped when opened from a company page.
+Analysis and Q&A are always company-scoped. The `/company/[ticker]/ai` detail view contains the saved analysis, reporting period and generation time, suggested questions, the user's previous company conversations, and supporting sources. Preserve company context and provide return navigation to the overview. Viewing saved content does not trigger generation or source acquisition.
+
+“Bu şirket hakkında sor” opens the question interface; only explicit submission of a question generates an answer over existing structured metrics and retrieved official evidence. Private conversations remain owner-scoped and recoverable after refresh/reconnect. This remains an MVP capability; removal of a global AI tab does not remove chat/Q&A.
 
 Suggested prompts:
 
@@ -1639,7 +1632,7 @@ What were the most important KAP disclosures in the last year?
 Has net debt improved?
 ```
 
-The company AI view should display which structured metrics and source documents were used whenever feasible.
+The company AI view must expose validated supporting metric references and source documents for published claims; unsupported claims must be withheld or explicitly identified as unavailable.
 
 ## 22.10 Source and lineage drill-down
 
@@ -1679,7 +1672,7 @@ Desktop: right-side drawer.
 
 ## 22.11 Freshness UX
 
-The UI must distinguish publication time from our processing time.
+The UI must distinguish publication time from our processing time. Show independent freshness for source checks, financial processing, AI analysis generation/covered reporting period, and EOD prices. A successful KAP check does not establish that financials or analysis are current. Source-check time must not replace the source publication time. Each module supports current/updating/stale/unavailable independently; one subsystem outage must not hide other available modules.
 
 Examples:
 
@@ -1766,6 +1759,8 @@ large empty marketing-style cards inside the app
 ```
 
 The interface should feel closer to an institutional research dashboard simplified for a retail investor.
+
+The owner-approved [research mockup](design/research-navigation-mockup.png) is a visual reference for hierarchy, spacing and restrained color, not a specification of financial values or runtime behavior. Its illustrative figures, “2024/3” labels, mixed-period chart and single freshness badge are not authoritative. The written period, evidence, freshness and navigation requirements in §§22–23 govern implementation.
 
 ## 23.2 Theme
 
@@ -1862,6 +1857,8 @@ Requirements:
 ## 23.7 Chart rules
 
 Charts must answer a question, not merely decorate a section.
+
+Never present annual, partial-year, standalone-quarter or TTM values as a like-for-like trend. Use a compatible selected basis, or explicitly separate and label different bases; reject unsupported financial comparisons. Preserve currency/unit and TMS 29 comparability requirements. Tooltips identify actual period dates and comparison basis; source-derived labels must not assume calendar quarters.
 
 Default chart behavior:
 
@@ -2045,10 +2042,10 @@ Key financial deltas
 ### Company / Overview
 
 ```text
-Company header
-Local tabs
+Company header and return navigation
+Four local tabs
+What Changed? with analysis/question actions
 Key financial metrics
-What Changed?
 Trend charts
 Valuation
 Latest events
@@ -2084,9 +2081,11 @@ Open original KAP source
 ### Company / AI
 
 ```text
-Suggested questions
-Conversation
-Sources/context used
+Company context and return to overview
+Saved analysis, covered period and generation time
+Ask about this company / Suggested questions
+Private previous conversations and recoverable active conversation
+Validated sources/metric references used
 ```
 
 ### Settings
@@ -2158,9 +2157,13 @@ The UI consumes standardized domain models.
 
 ## 23.18 Navigation acceptance criteria
 
-Before Phase 4 is considered complete:
+Before roadmap task 07.08 is complete (with AI-specific flows verified in 09.04/09.06):
 
-- every primary screen is reachable without typing a URL
+- all three primary destinations and detail screens are reachable without typing a URL
+- global search works from its persistent control and desktop keyboard shortcut; direct search links, dismissal/focus restoration and back navigation work
+- company detail is visibly distinct from Home; long company names, secondary-text contrast and all four local tabs remain usable on narrow screens
+- company overview → saved analysis → question → supporting source works without choosing the company again (09.04/09.06)
+- legacy `/ai` links reach search without a generation request or back-navigation loop
 - browser back behavior is sensible
 - mobile bottom navigation works inside Capacitor
 - desktop sidebar and mobile navigation represent the same destinations
@@ -2426,7 +2429,17 @@ render
 
 Opening a company page must not automatically call KAP.
 
-User-triggered exceptions:
+User-facing actions have distinct effects:
+
+| Action | Behavior |
+|---|---|
+| Detaylı analiz | Read the saved company analysis; do not generate or call KAP on open. |
+| Bu şirket hakkında sor | Open company Q&A; explicit question submission generates an answer from existing metrics and retrieved evidence. |
+| Güncellemeleri kontrol et | Lightweight source-freshness check; enqueue processing only when upstream data is newer. An unchanged response does not regenerate analysis. |
+
+No unrestricted “regenerate analysis” action is offered to ordinary users. Missing analysis shows an honest empty/updating/error state according to job status; recovery follows the controlled job/retry policy.
+
+Existing trigger classes (not a list of ordinary-user permissions):
 
 ```text
 Ask AI
@@ -2437,7 +2450,7 @@ Explicit reprocess by admin/developer
 
 `Ask AI` uses existing structured metrics and retrieved disclosure/document context. It does not re-download the company's financial statements first.
 
-A manual refresh should normally perform a lightweight freshness check and enqueue work only if the upstream source is newer.
+A manual refresh performs a lightweight freshness check and enqueues work only if the upstream source is newer. Historical import/backfill and explicit reprocessing remain operator-controlled; neither is exposed as an ordinary research action.
 
 ## 28.2 Freshness model
 

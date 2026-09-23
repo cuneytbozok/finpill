@@ -1,8 +1,8 @@
 # Blueprint correction register
 
-**Baseline:** [PROJECT_BLUEPRINT.md](PROJECT_BLUEPRINT.md) v0.3.  
+**Baseline:** Original [PROJECT_BLUEPRINT.md](PROJECT_BLUEPRINT.md) v0.3; current v0.4 applies BC-18 only.
 **Authority:** Approved [MVP execution plan](MVP_EXECUTION_PLAN.md), section 8.  
-**Status:** All 17 corrections are recorded; none has been applied to the blueprint.
+**Status:** BC-01–BC-17 remain recorded and unapplied. BC-18 is applied to blueprint v0.4 in this documentation revision; integration is tracked in TASK_STATUS.md.
 
 This register identifies required documentation reconciliation. It does not claim that architecture gates have passed or that the associated implementation exists. The blueprint remains unchanged during task 00.01. The approved roadmap already governs execution order and the explicit product-owner choices; its acceptance does not approve an unevidenced implementation ADR.
 
@@ -34,6 +34,11 @@ The owner is the implementer of the listed task, not an assumed service-account 
 | BC-15 | §3, §14, §22 | clarify EOD valuation as required; preserve later-phase returns/scoring and optional notifications as deferred. | 05.01, 06.04, 07.06 | Product-owner scope; A09, A10 | recorded |
 | BC-16 | §43–45 | define measurable performance/recovery targets, source-specific freshness, native/API release compatibility and required operational acceptance. | 01.09, 02.05, 10.03, 10.04, 10.06, 10.07 | A03, A07, A08 | recorded |
 | BC-17 | §48 | distinguish permitted private-pilot use from public redistribution/store/billing release gates. | 00.06, 02.08, 10.07 | Product-owner release boundary; A10 | recorded |
+| BC-18 | §22–23, §28.1, §28.5 | Three primary destinations, persistent search without a tab, four company tabs with contextual saved analysis/Q&A, legacy `/ai` compatibility, explicit periods/comparison bases, independent freshness and validated takeaway sources. Preserve company Q&A; no unrestricted user regeneration. | 01.07–01.08, 07.01, 07.05–07.06, 07.08, 09.02–09.04, 09.06 | Product-owner approval on 2026-09-23; blueprint v0.4; branch `codex/docs-research-navigation` and documentation PR recorded in TASK_STATUS.md. No architecture gate accepted. | applied |
+
+### BC-18 application boundary
+
+Only the approved research-navigation and presentation correction is applied in this revision. The [saved mockup](design/research-navigation-mockup.png) is illustrative, not financial evidence. Existing runtime architecture, canonical company routes, private company Q&A, phase dependencies and financial correctness remain intact. The global `/ai` route becomes a compatibility entry to search; it is not a primary destination. BC-02 remains recorded for its broader routing/API reconciliation; BC-18 deliberately supersedes only the global AI destination requirement. Application of this correction is documentation evidence, not implementation or native acceptance.
 
 ## Evidence and edit policy
 
