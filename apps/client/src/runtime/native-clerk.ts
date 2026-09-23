@@ -1,6 +1,6 @@
 import { registerPlugin } from "@capacitor/core";
 
-interface ClerkState {
+export interface ClerkState {
   isLoaded: boolean;
   userId: string | null;
 }
@@ -19,7 +19,15 @@ interface FinpillClerkPlugin {
 
 const plugin = registerPlugin<FinpillClerkPlugin>("FinpillClerk");
 
-export const iosClerk = {
+export interface NativeClerk {
+  initialize(publishableKey: string): Promise<ClerkState>;
+  state(): Promise<ClerkState>;
+  signIn(): Promise<void>;
+  signOut(): Promise<ClerkState>;
+  getAccessToken(): Promise<string | null>;
+}
+
+export const nativeClerk: NativeClerk = {
   initialize: (publishableKey: string) => plugin.initialize({ publishableKey }),
   state: () => plugin.state(),
   signIn: () => plugin.signIn(),

@@ -2,7 +2,8 @@
 
 import { ClerkProvider, SignInButton, UserButton, useAuth } from "@clerk/react";
 import { Capacitor } from "@capacitor/core";
-import { iosClerk } from "@/runtime/ios-clerk";
+import { nativeClerk } from "@/runtime/native-clerk";
+import type { NativeClerk } from "@/runtime/native-clerk";
 import {
   SessionResponseSchema,
   companyRoute,
@@ -441,7 +442,7 @@ function WebAuthApp() {
   return <AppShell auth={auth} accountControl={accountControl} />;
 }
 
-function IOSAuthApp() {
+function NativeAuthApp({ clerk }: { clerk: NativeClerk }) {
   const [loaded, setLoaded] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState(false);
@@ -449,15 +450,15 @@ function IOSAuthApp() {
     "checking" | "ready" | "error"
   >("checking");
   const auth = useMemo<AuthPort>(
-    () => ({ getAccessToken: iosClerk.getAccessToken }),
-    [],
+    () => ({ getAccessToken: clerk.getAccessToken }),
+    [clerk],
   );
 
   useEffect(() => {
     let active = true;
     const refresh = async () => {
       try {
-        const state = await iosClerk.state();
+        const state = await clerk.state();
         if (active) {
           setLoaded(state.isLoaded);
           setUserId(state.userId);
@@ -467,7 +468,7 @@ function IOSAuthApp() {
         if (active) setError(true);
       }
     };
-    void iosClerk
+    void clerk
       .initialize(publicEnvironment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!)
       .then(() => {
         if (active) void refresh();
@@ -477,7 +478,7 @@ function IOSAuthApp() {
       });
     const timer = window.setInterval(() => void refresh(), 1500);
     const timeout = window.setTimeout(() => {
-      void iosClerk
+      void clerk
         .state()
         .then((state) => {
           if (active && !state.isLoaded) setError(true);
@@ -493,7 +494,7 @@ function IOSAuthApp() {
       window.clearTimeout(timeout);
       document.removeEventListener("visibilitychange", refresh);
     };
-  }, []);
+  }, [clerk]);
 
   useEffect(() => {
     if (!loaded || !userId) return;
@@ -525,7 +526,7 @@ function IOSAuthApp() {
       {error && <span role="alert">Oturum kullanılamıyor</span>}
       {loaded && !error && !userId && (
         <button
-          onClick={() => void iosClerk.signIn().catch(() => setError(true))}
+          onClick={() => void clerk.signIn().catch(() => setError(true))}
           type="button"
         >
           Giriş yap
@@ -534,7 +535,7 @@ function IOSAuthApp() {
       {loaded && !error && userId && (
         <button
           onClick={() =>
-            void iosClerk
+            void clerk
               .signOut()
               .then(() => {
                 setUserId(null);
@@ -572,7 +573,8 @@ export function ClientApp() {
     () => "server",
   );
   if (!publicEnvironment.NEXT_PUBLIC_AUTH_ENABLED) return <AppShell />;
-  if (platform === "ios") return <IOSAuthApp />;
+  if (platform === "ios" || platform === "android")
+    return <NativeAuthApp clerk={nativeClerk} />;
   if (platform !== "web") return <AppShell />;
   return (
     <ClerkProvider
