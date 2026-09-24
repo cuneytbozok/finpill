@@ -85,6 +85,13 @@ for (const target of targets) {
   assert.deepEqual(packagedConfig, config, `Configuration drift: ${target}`);
   const packaged = await inventory(path.join(target, "public"));
   for (const [name, hash] of exported) {
+    // Android packaging omits dot-prefixed paths (aapt ignoreAssetsPattern),
+    // such as web-only .well-known files; anything packaged must still match.
+    if (
+      !packaged.has(name) &&
+      name.split("/").some((segment) => segment.startsWith("."))
+    )
+      continue;
     assert.equal(
       packaged.get(name),
       hash,
