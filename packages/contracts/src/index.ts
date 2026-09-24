@@ -10,7 +10,11 @@ export const HealthResponseSchema = z.strictObject({
 
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 
-export { PublicEnvironmentSchema, parseEnvironment } from "./environment";
+export {
+  PublicEnvironmentSchema,
+  assertCredentialFreePreview,
+  parseEnvironment,
+} from "./environment";
 export {
   CANONICAL_ROUTE_PATTERNS,
   CompanySectionSchema,

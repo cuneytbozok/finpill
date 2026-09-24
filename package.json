@@ -26,7 +26,8 @@
     "db:test": "node tools/test-database.mjs",
     "db:migration:new": "supabase migration new",
     "native:sync": "npm run build:client && npm run native:sync --workspace @finpill/client && npm run native:inspect",
-    "native:inspect": "node tools/check-native-assets.mjs"
+    "native:inspect": "node tools/check-native-assets.mjs",
+    "native:release": "node tools/build-native-release.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.2",

@@ -1,6 +1,47 @@
 import { z } from "zod";
 
-export const EnvironmentSchema = z.enum(["local", "staging", "production"]);
+// Application/data environments. A Vercel Preview is a deployment context with
+// no application environment; it is represented by an absent value.
+export const EnvironmentSchema = z.enum(["local", "production"]);
+
+// Integration switches that would need credentials when enabled.
+const integrationSwitches = [
+  "NEXT_PUBLIC_API_ENABLED",
+  "NEXT_PUBLIC_AUTH_ENABLED",
+  "AUTH_ENABLED",
+  "DATABASE_ENABLED",
+  "PRIVILEGED_DATA_ENABLED",
+  "KAP_ENABLED",
+];
+// Finpill identity/data/source settings and provider credential shapes.
+// Vercel system variables are the platform's own and are exempt.
+const credentialName =
+  /^(?:NEXT_PUBLIC_CLERK_|CLERK_|SUPABASE_|KAP_|DATABASE_URL$|POSTGRES_|PG(?:HOST|USER|PASSWORD|DATABASE|PORT)$)|(?:SECRET|TOKEN|PASSWORD|PRIVATE_KEY|API_KEY|CREDENTIALS?)(?:_|$)/;
+const platformName = /^(?:NEXT_PUBLIC_)?VERCEL_/;
+
+// Names (never values) that make a Preview build/runtime unacceptable.
+export function previewViolations(env: Record<string, string | undefined>) {
+  return Object.keys(env)
+    .filter((key) => {
+      const value = env[key];
+      if (value === undefined || value === "") return false;
+      if (integrationSwitches.includes(key)) return value !== "false";
+      if (key === "APP_ENV" || key === "NEXT_PUBLIC_APP_ENV") return true;
+      return !platformName.test(key) && credentialName.test(key);
+    })
+    .sort();
+}
+
+export function assertCredentialFreePreview(
+  env: Record<string, string | undefined>,
+) {
+  const violations = previewViolations(env);
+  if (violations.length > 0)
+    throw new Error(
+      `Invalid environment configuration: Vercel Preview must stay credential-free with integrations disabled: ${violations.join(", ")}`,
+    );
+}
+
 export const FeatureFlagSchema = z
   .enum(["true", "false"])
   .default("false")
@@ -39,7 +80,8 @@ export function isHostedOrigin(value: string): boolean {
 
 export const PublicEnvironmentSchema = z
   .object({
-    NEXT_PUBLIC_APP_ENV: EnvironmentSchema,
+    // Absent only in a credential-free Preview build (see the client adapter).
+    NEXT_PUBLIC_APP_ENV: EnvironmentSchema.optional(),
     NEXT_PUBLIC_API_ENABLED: FeatureFlagSchema,
     NEXT_PUBLIC_API_ORIGIN: OriginSchema.optional(),
     NEXT_PUBLIC_AUTH_ENABLED: FeatureFlagSchema,
@@ -47,6 +89,19 @@ export const PublicEnvironmentSchema = z
     NEXT_PUBLIC_DEEP_LINK_ORIGIN: OriginSchema.optional(),
   })
   .superRefine((env, ctx) => {
+    if (env.NEXT_PUBLIC_APP_ENV === undefined) {
+      for (const key of [
+        "NEXT_PUBLIC_API_ENABLED",
+        "NEXT_PUBLIC_AUTH_ENABLED",
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+      ] as const)
+        if (env[key])
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "Preview builds keep integrations disabled",
+          });
+    }
     if (env.NEXT_PUBLIC_API_ENABLED && !env.NEXT_PUBLIC_API_ORIGIN) {
       ctx.addIssue({
         code: "custom",

@@ -40,21 +40,16 @@ Vercel's `development`, `preview` and `production` values (`VERCEL_ENV`) describ
 
 **Local/CI rules:** tests use local or generated disposable resources only. No test, script or CI job may accept a Production database URL, project reference or Production credential.
 
-### Current implementation (until task 01.09)
+### Enforcement
 
-The code still implements the superseded three-value model:
+The contract lives in `packages/contracts/src/environment.ts` and is applied by the client build adapter (`apps/client/config/environment.ts`) and the API reader (`apps/api/src/server/environment-schema.ts`):
 
-- `EnvironmentSchema` in `packages/contracts/src/environment.ts` accepts `local`, `staging` and `production`.
-- The client build adapter in `apps/client/config/environment.ts` maps Vercel `preview` → `staging`, `production` → `production` and `development` → `local`.
-- The environment tests assert this mapping.
-
-Task 01.09 replaces this with:
-- `local`/`production` application environments
-- a Preview context that has no application environment and rejects Finpill, provider and data-access credentials and credential-requiring integrations (other server variables and Vercel system variables stay allowed)
-- Production with `AUTH_ENABLED=false` needs no Clerk configuration; with auth enabled it requires live keys and rejects development keys and the development issuer
-- removal of any hard-coded staging identity
-
-Until then, do not configure any Vercel scope with `staging` values or credentials.
+- `APP_ENV` / `NEXT_PUBLIC_APP_ENV` accept only `local` and `production`.
+- **Preview** (`VERCEL=1`, `VERCEL_ENV=preview`) must have no application environment. The client build, API build and API startup reject enabled integration switches and credential-shaped names: `CLERK_*`, `NEXT_PUBLIC_CLERK_*`, `SUPABASE_*`, `KAP_*`, `DATABASE_URL`, `POSTGRES_*`, `PG*` connection settings, and any name containing `SECRET`, `TOKEN`, `PASSWORD`, `PRIVATE_KEY`, `API_KEY` or `CREDENTIAL(S)` as a word. Vercel system variables are exempt. Errors list names only.
+- **Vercel Production** binds to `production` and **Vercel Development** to `local`. The API requires `APP_ENV` explicitly; the client derives it. Cross-binding or an unknown deployment context fails.
+- **Production auth:** with `AUTH_ENABLED=false` no Clerk setting is required. Supplied or enabled Clerk settings must be live (`sk_live_`/`pk_live_`), and any `*.clerk.accounts.dev` (development-instance) issuer is rejected. No specific instance, project or issuer identity is hard-coded.
+- **Local** rejects a hosted `SUPABASE_URL`: the only hosted project is Production.
+- **CI:** a process with `CI` set (outside Vercel builds) may validate a Production configuration only with every integration disabled. The workflow receives no repository secrets or variables (`tests/ci-isolation.test.mjs`), and database tests accept only a local Docker socket with a stripped environment (`tests/database-safety.test.mjs`).
 
 ## Local setup
 
@@ -76,13 +71,13 @@ Finpill reads only the following `NEXT_PUBLIC_` application settings:
 
 | Name | Requirement |
 |---|---|
-| `NEXT_PUBLIC_APP_ENV` | Currently `local`, `staging`, `production`; when omitted on Vercel, derived from its deployment environment. Task 01.09 narrows this to `local`/`production` with no value in Preview |
+| `NEXT_PUBLIC_APP_ENV` | `local` or `production`. On Vercel Production/Development it is derived from the deployment context; in Preview it must be absent |
 | `NEXT_PUBLIC_API_ENABLED` | Literal `true` / `false`; omitted means disabled |
 | `NEXT_PUBLIC_API_ORIGIN` | Required only with API enabled; supplied values always validated. Transport will add `/api/v1` in 01.01 |
 | `NEXT_PUBLIC_AUTH_ENABLED` | Literal `true` / `false`; omitted means disabled |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Required when auth enabled; test key outside production, live key in production |
 
-The public reader uses literal `process.env.NEXT_PUBLIC_*` references for Next's build-time replacement. The platform-neutral public schema strips unrelated server settings. The client build also permits an exact list of Vercel framework metadata names (deployment URLs, environment, region, project/deployment IDs, hash salt, observability client configuration and documented Git metadata). These are ignored by the application schema. The build adapter maps `VERCEL_ENV` to the app environment only when `VERCEL=1`. The current preview → staging mapping is superseded; see [current implementation](#current-implementation-until-task-0109). Explicit app settings retain precedence; unknown deployment environments fail. The validated public environment is inlined through Next config so browser and build agree. The list includes `NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA`, documented among system variables and prefixed by the builder. Unknown public names, including secret/token names under `NEXT_PUBLIC_VERCEL_`, remain rejected. See [Vercel framework variables](https://vercel.com/docs/environment-variables/framework-environment-variables). Client/shared source must use the validated reader rather than reading environment variables elsewhere; lint checks direct environment access as well as import boundaries. This is a guardrail, not a sandbox against intentionally obfuscated code.
+The public reader uses literal `process.env.NEXT_PUBLIC_*` references for Next's build-time replacement. The platform-neutral public schema strips unrelated server settings. The client build also permits an exact list of Vercel framework metadata names (deployment URLs, environment, region, project/deployment IDs, hash salt, observability client configuration and documented Git metadata). These are ignored by the application schema. The build adapter applies the deployment-context rules in [Enforcement](#enforcement) only when `VERCEL=1`; an explicit value must agree with the binding, and a Preview build inlines no app environment. The validated public environment is inlined through Next config so browser and build agree. The list includes `NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA`, documented among system variables and prefixed by the builder. Unknown public names, including secret/token names under `NEXT_PUBLIC_VERCEL_`, remain rejected. See [Vercel framework variables](https://vercel.com/docs/environment-variables/framework-environment-variables). Client/shared source must use the validated reader rather than reading environment variables elsewhere; lint checks direct environment access as well as import boundaries. This is a guardrail, not a sandbox against intentionally obfuscated code.
 
 A credential-free Vercel project can deploy the current placeholder with API/auth disabled and no origin configured. Enabling API access requires an explicit real origin; no Vercel client URL or localhost fallback is substituted. Task 01.01 must honor the API-enabled flag before transport requests.
 
@@ -106,9 +101,9 @@ KAP token fields are prerequisites, not a verified production authentication pro
 
 ## Verification and evidence limits
 
-- `npm test`: missing/malformed settings, enabled-feature requirements, public allowlist, hosted-origin restrictions, production/development separation, error redaction, and environment/import boundaries.
-- `npm run test:environment-build`: rejects invalid real builds, builds a client with fake secret canaries, inspects every exported file for those canaries, verifies public API-origin inlining, builds the API and checks valid/invalid production startup on a temporary port.
+- `npm test`: missing/malformed settings, enabled-feature requirements, public allowlist, hosted-origin restrictions, Production/Local separation, Preview credential rejection, Production auth fail-closed rules, CI isolation, native release profile/scan helpers, error redaction, and environment/import boundaries.
+- `npm run test:environment-build`: rejects invalid real builds, builds a client with fake secret canaries, inspects every exported file for those canaries, verifies public API-origin inlining, rejects credentialed or integration-enabled Preview client builds, builds a credential-free Preview client, builds the API and checks Production and credential-free Preview startup (and credentialed Preview refusal) on a temporary port.
 - The build smoke uses fake canaries only. Run it from a clean checkout without real service `.env` files; it invokes no providers or database. It replaces generated build outputs with verification artifacts, so rebuild with the intended environment before deployment.
-- These checks do not prove real service access, RLS, native key storage, credential-free Preview configuration or release compatibility. A03 remains draft.
+- These checks do not prove real service access, RLS, native key storage or the actual contents of hosted Vercel scopes; the deployed Preview/Production checks and scope audit are recorded in the 01.09 PR. A03 remains draft until 01.09 and 01.10 evidence is complete.
 
 Documentation checked through Context7 for Next.js environment loading/inlining, instrumentation and Zod validation; Supabase changelog and current [API key guidance](https://supabase.com/docs/guides/getting-started/api-keys) checked on 2026-09-22. See also [Next.js environment variables](https://nextjs.org/docs/app/guides/environment-variables).

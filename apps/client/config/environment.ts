@@ -1,5 +1,6 @@
 import {
   PublicEnvironmentSchema,
+  assertCredentialFreePreview,
   parseEnvironment,
 } from "../../../packages/contracts/src/environment";
 
@@ -46,18 +47,30 @@ export function validateClientEnvironment(env: NodeJS.ProcessEnv) {
       `Unrecognized NEXT_PUBLIC_ setting; use the public environment allowlist: ${unknownKeys.sort().join(", ")}`,
     );
   }
-  const deploymentEnvironment =
-    env.VERCEL === "1"
-      ? (
-          {
-            production: "production",
-            preview: "staging",
-            development: "local",
-          } as Record<string, string>
-        )[env.VERCEL_ENV ?? ""]
-      : undefined;
-  return parseEnvironment(PublicEnvironmentSchema, {
-    ...env,
-    NEXT_PUBLIC_APP_ENV: env.NEXT_PUBLIC_APP_ENV ?? deploymentEnvironment,
-  });
+  // Vercel deployment context is not an application environment. Preview has
+  // none; Production and Development bind to exactly one and may not be
+  // overridden with the other.
+  if (env.VERCEL === "1") {
+    if (env.VERCEL_ENV === "preview") {
+      assertCredentialFreePreview(env);
+      return parseEnvironment(PublicEnvironmentSchema, env);
+    }
+    const bound = (
+      { production: "production", development: "local" } as Record<
+        string,
+        string
+      >
+    )[env.VERCEL_ENV ?? ""];
+    const explicit = env.NEXT_PUBLIC_APP_ENV ?? bound;
+    if (!bound || explicit !== bound)
+      throw new Error("Invalid environment configuration: NEXT_PUBLIC_APP_ENV");
+    return parseEnvironment(PublicEnvironmentSchema, {
+      ...env,
+      NEXT_PUBLIC_APP_ENV: bound,
+    });
+  }
+  // Outside Vercel an application environment is always explicit.
+  if (!env.NEXT_PUBLIC_APP_ENV)
+    throw new Error("Invalid environment configuration: NEXT_PUBLIC_APP_ENV");
+  return parseEnvironment(PublicEnvironmentSchema, env);
 }
