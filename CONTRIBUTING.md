@@ -1,34 +1,27 @@
 # Contributing
 
-Read [AGENTS.md](AGENTS.md) first. Follow its task-selection and context-loading rules, then read only the selected task's relevant roadmap, handoff, blueprint and ADR context before starting.
+[AGENTS.md](AGENTS.md) is the canonical workflow: document ownership, the session lifecycle, owner-approval rules, testing tiers and the product/data invariants. This file adds only repository mechanics.
 
-## Branches and worktrees
+## Branches and commits
 
-- `main` is the integration branch. The initial approved documentation commit is the bootstrap baseline.
-- Name task branches `codex/<task-id>-<short-description>`, for example `codex/00.02-repository-foundation`.
-- Use one isolated worktree per independent task, based on the merged prerequisite commit. Record the base commit in the task handoff.
-- Stacked branches must identify their base PR and merge order. Re-run integration checks against the combined state.
-- Assign one owner to shared contracts, migrations, root manifests/lockfile, routing and ADRs. Do not run competing edits on these interfaces.
-- Do not rewrite published history or force-push shared branches as part of normal implementation.
+- `main` is the integration branch.
+- Name task branches `codex/<task-id>-<short-description>`, for example `codex/02.01-source-evidence-pack`. Use `codex/docs-<topic>` for documentation-only changes.
+- Use one isolated worktree per implementation task. Do not create branches or worktrees only to update task status after a merge.
+- Include the task ID in commit subjects, for example `feat(02.04): add decimal parsing utilities`.
+- Do not rewrite published history or force-push shared branches.
 
-## Changes and verification
+## Dependencies
 
-Keep each change independently reviewable and within its roadmap task. Include the task ID in commit subjects, for example `chore(00.02): establish repository toolchain`.
+Use one root npm lockfile. Add workspace dependencies from the repository root and commit manifest and lockfile changes together. Do not use `--force` to bypass toolchain requirements, mix package managers, or run `npm audit fix` without reviewing its dependency changes.
 
-Run the checks required by the task and report actual outcomes. Parser/metric changes require independently checked fixture expectations; database changes require migrations. Missing live/native evidence stays explicit. Documentation/bootstrap work must not report nonexistent application tests as passing.
+## Secrets and published content
 
-Use one root npm lockfile. Add workspace dependencies from the repository root when task 00.03 establishes the workspace. Commit manifest and lockfile changes together. Do not use `--force` to bypass toolchain requirements, mix package managers, or run `npm audit fix` without reviewing its dependency changes.
+Review staged files for secrets, credentials, signing material, raw-source usage rights and unintended generated output. Ignore rules are a guardrail, not proof that a file is safe to publish. The GitHub repository is public; private-use data rights do not authorize committing source payloads.
 
-Review staged files for secrets, credentials, signing material, raw-source usage rights and unintended generated output. Ignore rules are a guardrail, not proof that a file is safe to publish. The owner-selected GitHub repository is public; private-pilot data rights do not authorize committing source payloads.
+## Pull requests and merging
 
-## Pull requests and merge policy
-
-- Open a PR targeting `main` with the task ID in its title. Use the repository template and attach the PR to the Codex task.
-- Include acceptance evidence, test results, migrations/contracts, operational impact, limitations and a next-task handoff.
-- Use draft status while acceptance evidence is incomplete. Keep the ledger `in_review` until review/merge acceptance is recorded.
-- A reviewer checks scope, correctness, authorization, versioning and lineage, and verifies financial expectations independently where required.
-- Merge after review, required checks and explicit owner authorization or a subsequently documented merge policy. Roadmap approval alone does not authorize automatic merging.
-- Prefer squash merging one coherent task PR. Do not combine unrelated tasks just to reduce PR count.
-- After merge, record the PR/merged commit, mark accepted tasks complete, and recompute readiness. Consumers start from the merged contract, not an unmerged working copy.
-
-Branch protection and automated required checks are not configured by this documentation. Task 00.05 adds initial CI; task 01.09 adds deployment/native pipelines. Record the actual configured checks when available.
+- Open a PR against `main` with the task ID in its title, using the repository template.
+- The PR description is the evidence record: behavior, checks run by tier (and required checks not run, with the reason), migrations/contracts, exceptions and remaining blockers.
+- Update the task's row in `docs/TASK_STATUS.md`, and any documents the change genuinely affects, in the same PR. There is no separate closeout PR.
+- Use draft status while required evidence is incomplete.
+- The owner reviews and merges, normally with a squash merge, after the CI jobs (`quality` and `database` in `.github/workflows/ci.yml`) and the Vercel Preview check pass. Branch protection is not configured, so this is a working agreement rather than an enforced rule.

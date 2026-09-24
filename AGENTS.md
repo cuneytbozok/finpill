@@ -1,69 +1,76 @@
 # Finpill project rules
 
-## Read first and document authority
+Finpill is a private, owner-used MVP developed mainly by one owner with coding agents. Principle: **production-grade data model, startup-grade delivery process.** The product, data and security rules below are strict. The process around them is intentionally light.
 
-- `origin/main` is the canonical merged integration state. A local checkout, local `main`, or local `TASK_STATUS.md` may be stale or dirty and must not be used as authoritative task state without reconciliation.
+## Document ownership
 
-- Before implementation:
+| Document | Owns |
+|---|---|
+| [`docs/PROJECT_BLUEPRINT.md`](docs/PROJECT_BLUEPRINT.md) | Current approved product architecture, system invariants and technical baseline. |
+| [`docs/MVP_EXECUTION_PLAN.md`](docs/MVP_EXECUTION_PLAN.md) | Task scope, order, dependencies and acceptance criteria. |
+| [`docs/adr/`](docs/adr/) | Consequential architecture decisions only. Ordinary implementation needs no ADR. |
+| [`docs/TASK_STATUS.md`](docs/TASK_STATUS.md) | Compact current execution state, active blockers and standing exceptions. |
+| [`docs/ACCESS_REGISTER.md`](docs/ACCESS_REGISTER.md) | External prerequisites: owner, safe resource identity, status, consuming task. |
+| [`docs/BLUEPRINT_CORRECTIONS.md`](docs/BLUEPRINT_CORRECTIONS.md) | Traceability for blueprint corrections; canonical only for rows still `recorded`. |
+| Operational docs (`docs/ENVIRONMENTS.md`, `docs/DATABASE_DEVELOPMENT.md`, setup/auth/deep-link guides) | Setup, deployment and how-to instructions. |
+| GitHub PRs and checks | Implementation history, detailed verification evidence, CI results and review. |
 
-  ### Task discovery
+Do not copy the same evidence into several documents. `docs/archive/` is historical and non-canonical.
 
-  1. Fetch and prune `origin` before selecting a task.
-  2. Determine the canonical task state from `docs/TASK_STATUS.md` on `origin/main`, preferably without modifying the current checkout.
-  3. Do not reset, clean, fast-forward, switch, or otherwise modify the user's existing checkout during task discovery.
-  4. If the canonical ledger shows a task as `in_progress` or `in_review`, inspect only the relevant task branch/PR state needed to reconcile its actual status.
-  5. If repository/PR evidence shows that a ledger state is stale, use the verified repository/PR state for task selection and preserve the discrepancy for correction in the next safe documentation update.
-  6. If an actionable task is already `in_progress`, continue that task from its existing branch/worktree.
-  7. If a task is `in_review`, continue it only when there is actionable unresolved review or acceptance work that can be completed in this session. If it is merely awaiting review/merge and does not block later work, leave it in review and continue task selection.
-  8. Otherwise select the first `ready` task in roadmap order whose dependencies and required architecture gates are satisfied. Before selecting a later `ready` task, check whether any earlier roadmap task is blocked only by user/external action, regardless of its recorded ledger state. If so, surface that blocker under the rules below and obtain explicit user approval before bypassing it.
-  9. If the remote state cannot be verified, do not start a new task based only on potentially stale local state. Report the verification failure instead.
-  10. Do not load task-specific skills, Context7, external documentation, implementation files, or create a new worktree until task selection is complete.
+## Session lifecycle
 
-  ### External blockers and user input
+1. Fetch `origin` and use the latest `origin/main` as the base. Do not modify the owner's existing checkout.
+2. Check open and recently merged task PRs (`gh pr list --state all`) together with `docs/TASK_STATUS.md`. If they disagree, GitHub merge state wins; fix the row in your task PR.
+3. Pick the first actionable roadmap task: its dependencies are merged and nothing it depends on is blocked. Continue an open task PR before starting a new task.
+4. Load only that task's roadmap row, the contracts and code it touches, and any ADR or blueprint section it explicitly depends on. Do not read the whole blueprint, all ADRs, archived history or unrelated phases unless the task changes architecture or you find an actual inconsistency.
+5. Create or reuse the task's branch/worktree. Implement a complete vertical slice within the task scope.
+6. Run risk-appropriate tests (below). Update only the documents the change actually affects, plus the task's row in `docs/TASK_STATUS.md`, in the same PR.
+7. Open one PR and stop for owner review and merge. There is no separate closeout session or PR.
 
-  - Do not silently skip an earlier roadmap task because it requires user-provided access, ownership, configuration, credentials, account setup, signing, provider selection, or another external decision.
-  - When the next roadmap task cannot proceed because of a user/external prerequisite:
+If a task is blocked by external/owner input: record the blocker in `docs/TASK_STATUS.md`, tell the owner exactly what is needed (information safe to share in chat, secrets to configure outside chat, and console actions, kept separate), never claim the check passed, and continue with a genuinely independent ready task where that is safe. A blocker blocks only its dependent work.
 
-    1. Stop before starting a later task.
-    2. State the blocked task ID and the exact blocking requirement.
-    3. Tell the user exactly what they need to do or provide to unblock it.
-    4. Separate:
-       - information the user can safely provide in chat,
-       - secrets/credentials that must be configured outside chat,
-       - external actions the user must perform in a provider console or account.
-    5. Give concrete identifiers, settings, console locations, or verification steps when known.
-    6. Explain how completion will be verified.
-    7. Record the blocker and required next action in `docs/TASK_STATUS.md`.
-    8. Wait for the user's response before starting a later independent task; a response alone does not authorize bypassing the blocker.
+Use Context7 or external documentation only when the task depends on unverified or version-specific library/API behavior. Say so explicitly if required verification is unavailable.
 
-  - A later independent `ready` task may be started while an earlier task is blocked only after the user explicitly approves continuing around that blocker. Existing dependency and architecture-gate requirements still apply.
-  - If several upcoming tasks require user action, group their requirements into one concise checklist so the user can clear multiple blockers at once. Use targeted prerequisite reads to prepare this checklist without loading unrelated task context or starting those tasks.
+## Owner approval
 
-  ### Selected-task context
+Ask the owner explicitly before:
 
-  11. After selecting the task, read only:
-      - the selected task's definition and directly relevant dependency context in `docs/MVP_EXECUTION_PLAN.md`,
-      - the selected task's current/predecessor handoff in `docs/TASK_STATUS.md`,
-      - explicitly referenced ADRs,
-      - relevant `PROJECT_BLUEPRINT.md` sections when architectural or product context is required.
-  12. Use targeted searches and line/range reads for long documents. Do not dump entire roadmap, ledger, blueprint, ADR, or log files into context when only a section is needed.
-  13. Do not read unrelated historical handoffs, roadmap phases, ADRs, or blueprint sections.
-  14. Read `docs/PROJECT_BLUEPRINT.md` only when the selected task requires architectural/product context or an architectural change.
+- any Production mutation (data, configuration, deployments beyond the normal merge flow)
+- destructive data operations
+- paid resources
+- account, credential or provider-configuration changes
+- irreversible actions
+- architecture changes
+- product-scope decisions
 
-  ### Execution
+Do not stop for ordinary, reversible implementation choices.
 
-  15. For a new task, create its isolated worktree/branch from the verified `origin/main` base unless the roadmap explicitly requires another base.
-  16. For an existing `in_progress` task, reuse its existing task branch/worktree rather than creating duplicate work.
-  17. Work on one task only per implementation session.
-  18. Implement only the selected task's scope and required acceptance work.
-  19. Verify the task using its required checks and record actual evidence.
-  20. Update `docs/TASK_STATUS.md` with the resulting state, evidence, blockers, commit/PR information, and next-task handoff.
-  21. After verification and handoff, stop. Do not start another task in the same session.
+## Testing tiers
 
-- `docs/MVP_EXECUTION_PLAN.md` is the approved execution roadmap. Its task order supersedes the original sequence in blueprint §§37–39 and §§50–51; this does not silently change product scope.
-- Approved product-owner decisions and required blueprint corrections are recorded in the roadmap and `docs/BLUEPRINT_CORRECTIONS.md`. Keep the blueprint unchanged until its correction is deliberately included in an authorized documentation change.
-- An approved roadmap direction is not evidence that an architecture gate has passed. Accept ADRs only after their required evidence exists.
-- Use Context7 only when the task materially depends on unverified or version-specific external library/API behavior, setup, or configuration. Reuse documentation already retrieved for the current task, request only the minimum relevant documentation, and do not use it for routine code generation or repository-established behavior. If required verification is unavailable, state that explicitly.
+- **Tier 1, every code change:** formatting, lint, typecheck and directly affected unit tests. The cheap full CI (`npm run check`, database replay) still runs on every PR.
+- **Tier 2, contract-specific, when relevant:**
+  - migration replay
+  - pgTAP/RLS tests
+  - parser fixtures and golden tests
+  - financial metric tests
+  - API integration
+  - environment and secret-leakage tests
+- **Tier 3, platform/release, only when triggered or at milestone tasks:**
+  - deployed Vercel checks
+  - iOS/Android Release builds and device or emulator tests
+  - native lifecycle checks
+  - signed artifact checks
+
+Manual native checks are required only when native platform code, shared runtime behavior affecting native, the auth bridge, routing/deep-link integration or release configuration changes, or when a milestone task (for example 01.10, 07.08, 10.07) requires full platform proof. Backend and data work does not trigger device testing. Do not repeat established native evidence unless relevant code changed. Keep the inexpensive automated secret and native-asset scans. Attach ordinary UI screenshots to the PR; do not commit them as canonical evidence.
+
+Run lint, typecheck and tests before declaring a code task complete. For documentation-only changes, run the documentation checks and report code checks as not applicable, not passed. Missing access or failed validation stays explicit; never replace required live, native or golden evidence with a passing mock.
+
+## Branches and PRs
+
+- One isolated branch/worktree per implementation task, named `codex/<task-id>-<short-description>`. No worktrees or branches for status-only or post-merge bookkeeping. Prune merged-task worktrees when they are clean.
+- One task per PR is the norm. Tightly coupled tasks may share a PR only when splitting them would be artificial and the review boundary stays clear.
+- The PR description carries the evidence: behavior, tests run by tier, migrations/contracts, exceptions and remaining blockers.
+- The owner merges. Do not force-push shared branches or rewrite published history.
 
 ## Architecture
 
@@ -75,6 +82,13 @@
 - Capacitor for mobile; validate production runtime, routing, authentication, environment configuration, assets, and deep links early.
 - KAP/MKK is the primary fundamental-data source.
 - Do not expand MVP scope. The private pilot and 20-company validation cohort must not become architectural limits.
+- **Environments:**
+  - There are two application/data environments: **Local** (development, automated tests, disposable databases, the Clerk development instance) and **Production** (the single hosted private application: Vercel Production, one hosted Supabase project, and a Clerk live instance once hosted authentication is enabled).
+  - "Private pilot" is a usage/release mode of Production, not a separate environment.
+  - Vercel **Preview** is a credential-free deployment context, not an application environment. It must never receive Production data-access, identity, provider, KAP, AI or privileged credentials.
+  - Local and CI must never target Production resources or use Production credentials.
+  - Production configuration fails closed and never falls back to Local/development services.
+  - A hosted Staging environment may be added later only if public release, multiple users, store distribution or operational risk justify it. See [A03](docs/adr/A03-environments-and-releases.md).
 
 ## Financial correctness
 
@@ -108,15 +122,11 @@
 - Follow UX rules in PROJECT_BLUEPRINT.md and the approved shared routing architecture.
 - Keep secrets, privileged database clients, financial calculations, and integration code server-side.
 
-## Engineering
+## Engineering invariants
 
 - Add tests with every parser/metric change; establish fixture/golden expectations before changing behavior.
-- Run lint, typecheck and tests before declaring a code task complete. For documentation-only tasks before those commands exist, perform document checks and explicitly report code checks as not applicable, not passed.
-- Every database schema change must use a migration; external API responses require runtime validation.
-- Do not silently change architecture.
-- If an architectural decision conflicts with the blueprint, document it as an ADR.
-- Follow the task-discovery, context-loading, and single-task execution protocol above; keep `docs/TASK_STATUS.md` synchronized with verified evidence and handoffs.
-- Use an isolated worktree/branch per independent task once Git exists. Coordinate shared contracts, migrations, routing, and root dependencies through one owner.
-- Bootstrap exception: task 00.01 precedes Git initialization. Carry its verified documentation into the initial repository history in task 00.02; do not claim a commit or PR exists before it does.
-- Keep secrets out of commits, logs, fixtures, client bundles, and handoffs.
-- Missing access or failed validation must remain explicit. Do not replace required live/native/golden evidence with a passing mock.
+- Every database schema change must use a migration; never edit an applied migration. External API responses require runtime validation.
+- Ingestion is idempotent; source revisions and history are append-only.
+- Versioned or backward-compatible API contracts protect installed native clients.
+- Do not silently change architecture. Record a consequential architecture decision as an ADR and update the blueprint in the same PR.
+- Keep secrets out of commits, logs, fixtures, client/native bundles and PR text. Secrets live only in ignored local files, CI-scoped secrets or the hosting provider's secret store.
