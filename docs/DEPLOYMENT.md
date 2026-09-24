@@ -65,6 +65,9 @@ For acceptance, record project IDs and exact deployment origins in the access
 register, confirm both client and API previews are Ready, request deployed
 health, test allowed/disallowed browser origins and bearer paths, inspect
 client and native artifacts for server secrets, and prove Preview credentials
-cannot access pilot resources. The current Vercel connector lacks access to
-the owner's team; the API project and pilot resources have not yet been
+cannot access pilot resources. The Vercel connector lacks access to the
+owner's team, but authenticated Chrome can inspect project settings. The
+separate API project is `finpill-api` (`prj_RPrp1YttJigzDOBXIUI3cYGbBjJb`).
+Its Preview currently has only non-secret `APP_ENV` and `CLIENT_ORIGINS`
+configured. Pilot resources and a successful hosted API Preview have not been
 confirmed. Do not mark those hosted checks passed from local builds.
