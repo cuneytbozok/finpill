@@ -16,6 +16,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, URL } from "node:url";
 import {
+  containsCredential,
   releaseBuildEnvironment,
   releaseSettings,
   scanForCredentials,
@@ -110,9 +111,12 @@ for (const artifact of [iosApp, apk])
   if (!existsSync(artifact)) throw new Error(`Missing artifact: ${artifact}`);
 
 // Inspect the packaged artifacts themselves, not only the synced sources.
+// APK resource names can differ only by case, so never extract the whole
+// archive onto a case-insensitive disk: extract assets for the parity check
+// and scan every entry straight from the archive.
 const extracted = await mkdtemp(path.join(tmpdir(), "finpill-release-"));
 try {
-  run("unzip", ["-q", apk, "-d", extracted]);
+  run("unzip", ["-q", apk, "assets/*", "-d", extracted]);
   run("node", [
     "tools/check-native-assets.mjs",
     iosApp,
@@ -125,11 +129,15 @@ try {
   ]
     .map((name) => process.env[name])
     .filter(Boolean);
+  const apkContents = spawnSync("unzip", ["-p", apk], {
+    maxBuffer: 1024 * 1024 * 1024,
+  });
+  if (apkContents.status !== 0) throw new Error("Unable to read the APK");
   const findings = [
     ...(await scanForCredentials(iosApp, serverValues)).map((f) => `ios:${f}`),
-    ...(await scanForCredentials(extracted, serverValues)).map(
-      (f) => `android:${f}`,
-    ),
+    ...(containsCredential(apkContents.stdout, serverValues)
+      ? ["android:apk"]
+      : []),
   ];
   if (findings.length > 0)
     throw new Error(`Credential pattern in artifacts: ${findings.join(", ")}`);

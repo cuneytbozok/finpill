@@ -90,17 +90,20 @@ export async function files(directory, prefix = "") {
   return found.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
+export function containsCredential(bytes, extraValues = []) {
+  const text = bytes.toString("latin1");
+  return (
+    credentialPattern.test(text) ||
+    extraValues.some((value) => value && text.includes(value))
+  );
+}
+
 // Scans every file and returns only the paths that match, never the match.
 export async function scanForCredentials(directory, extraValues = []) {
   const findings = [];
-  for (const [relative, absolute] of await files(directory)) {
-    const text = (await readFile(absolute)).toString("latin1");
-    if (
-      credentialPattern.test(text) ||
-      extraValues.some((value) => value && text.includes(value))
-    )
+  for (const [relative, absolute] of await files(directory))
+    if (containsCredential(await readFile(absolute), extraValues))
       findings.push(relative);
-  }
   return findings;
 }
 
