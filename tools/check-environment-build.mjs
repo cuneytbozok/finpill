@@ -38,10 +38,21 @@ const env = {
   PRIVILEGED_DATA_ENABLED: "false",
   KAP_ENABLED: "false",
 };
-function build(app, overrides = {}, succeeds = true) {
+// A Vercel Preview has no application environment and no credentials. Start
+// from an allowlist so unrelated developer-shell tokens do not affect the check.
+const previewEnv = {
+  PATH: process.env.PATH,
+  HOME: process.env.HOME,
+  NEXT_TELEMETRY_DISABLED: "1",
+  VERCEL: "1",
+  VERCEL_ENV: "preview",
+  NEXT_PUBLIC_VERCEL_ENV: "preview",
+  CLIENT_ORIGINS: env.CLIENT_ORIGINS,
+};
+function build(app, overrides = {}, succeeds = true, base = env) {
   const result = spawnSync(process.execPath, [next, "build"], {
     cwd: path.join(root, "apps", app),
-    env: { ...env, ...overrides },
+    env: { ...base, ...overrides },
     encoding: "utf8",
     timeout: 120_000,
   });
@@ -65,15 +76,17 @@ function build(app, overrides = {}, succeeds = true) {
 build("client", { NEXT_PUBLIC_API_ORIGIN: "" }, false);
 build("client", { NEXT_PUBLIC_KAP_API_SECRET: "forbidden" }, false);
 build("api", { APP_ENV: "" }, false);
-// Reproduce Vercel with zero manually configured app variables.
-build("client", {
-  VERCEL: "1",
-  VERCEL_ENV: "preview",
-  NEXT_PUBLIC_APP_ENV: undefined,
-  NEXT_PUBLIC_API_ORIGIN: undefined,
-  NEXT_PUBLIC_API_ENABLED: undefined,
-  NEXT_PUBLIC_AUTH_ENABLED: undefined,
-});
+// Preview rejects an application environment, credentials and enabled
+// integrations, but builds with zero app variables.
+build("client", { VERCEL: "1", VERCEL_ENV: "preview" }, false);
+build(
+  "client",
+  { SUPABASE_SECRET_KEY: canaries.SUPABASE_SECRET_KEY },
+  false,
+  previewEnv,
+);
+build("client", { NEXT_PUBLIC_API_ENABLED: "true" }, false, previewEnv);
+build("client", {}, true, previewEnv);
 build("client");
 
 async function files(directory) {
@@ -104,13 +117,13 @@ const probe = createServer();
 await new Promise((resolve) => probe.listen(0, "127.0.0.1", resolve));
 const port = probe.address().port;
 await new Promise((resolve) => probe.close(resolve));
-async function start(overrides, shouldStart) {
+async function start(overrides, shouldStart, base = env) {
   const child = spawn(
     process.execPath,
     [next, "start", "--hostname", "127.0.0.1", "--port", String(port)],
     {
       cwd: path.join(root, "apps/api"),
-      env: { ...env, ...overrides },
+      env: { ...base, ...overrides },
       stdio: ["ignore", "pipe", "pipe"],
     },
   );
@@ -139,7 +152,7 @@ async function start(overrides, shouldStart) {
       let response;
       for (let attempt = 0; attempt < 100; attempt++) {
         if (child.exitCode !== null)
-          throw new Error("Production server exited before readiness");
+          throw new Error("API server exited before readiness");
         try {
           response = await fetch(`http://127.0.0.1:${port}/api/v1/health`);
           if (response.ok) break;
@@ -148,7 +161,7 @@ async function start(overrides, shouldStart) {
         }
         await setTimeout(100);
       }
-      assert(response?.ok, "Production server failed to start");
+      assert(response?.ok, "API server failed to start");
       assert.deepEqual(await response.json(), {
         status: "ok",
         apiVersion: "v1",
@@ -163,6 +176,9 @@ async function start(overrides, shouldStart) {
 }
 await start({}, true);
 await start({ APP_ENV: "" }, false);
+// The same build serves a credential-free Preview and refuses a credentialed one.
+await start({}, true, previewEnv);
+await start({ CLERK_SECRET_KEY: canaries.CLERK_SECRET_KEY }, false, previewEnv);
 console.log(
-  `Environment build checks passed: rejected invalid builds/runtime, verified production liveness and scanned ${artifacts.length} static files.`,
+  `Environment build checks passed: rejected invalid builds/runtime, verified production and Preview liveness, rejected credentialed Preview and scanned ${artifacts.length} static files.`,
 );

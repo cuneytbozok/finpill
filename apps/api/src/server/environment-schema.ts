@@ -1,11 +1,23 @@
 import { z } from "zod";
 import {
   EnvironmentSchema,
+  assertCredentialFreePreview,
   FeatureFlagSchema,
   OriginSchema,
   isHostedOrigin,
   parseEnvironment,
 } from "@finpill/contracts/environment";
+
+function isClerkDevelopmentIssuer(value: string) {
+  try {
+    return new URL(value).hostname
+      .toLowerCase()
+      .replace(/\.$/, "")
+      .endsWith(".clerk.accounts.dev");
+  } catch {
+    return true;
+  }
+}
 
 const secret = z
   .string()
@@ -14,7 +26,8 @@ const secret = z
 const url = z.string().url();
 export const ServerEnvironmentSchema = z
   .object({
-    APP_ENV: EnvironmentSchema,
+    // Absent only in a credential-free Vercel Preview (see the reader below).
+    APP_ENV: EnvironmentSchema.optional(),
     CLIENT_ORIGINS: z
       .string()
       .transform((value) => value.split(","))
@@ -46,6 +59,29 @@ export const ServerEnvironmentSchema = z
         message: "Missing or incompatible setting",
       });
     }
+    if (env.APP_ENV === undefined) {
+      for (const key of [
+        "AUTH_ENABLED",
+        "DATABASE_ENABLED",
+        "PRIVILEGED_DATA_ENABLED",
+        "KAP_ENABLED",
+      ] as const)
+        if (env[key]) issue(key);
+    }
+    // The only hosted Supabase project is Production; Local never targets it.
+    if (
+      env.APP_ENV === "local" &&
+      env.SUPABASE_URL &&
+      isHostedOrigin(env.SUPABASE_URL)
+    )
+      issue("SUPABASE_URL");
+    // Clerk development instances issue from *.clerk.accounts.dev.
+    if (
+      env.APP_ENV === "production" &&
+      env.CLERK_JWT_ISSUER &&
+      isClerkDevelopmentIssuer(env.CLERK_JWT_ISSUER)
+    )
+      issue("CLERK_JWT_ISSUER");
     if (env.APP_ENV !== "local") {
       if (env.CLIENT_ORIGINS.some((origin) => !isHostedOrigin(origin)))
         issue("CLIENT_ORIGINS");
@@ -116,37 +152,35 @@ export const ServerEnvironmentSchema = z
     }
   });
 
+const deploymentBinding: Record<string, string> = {
+  production: "production",
+  development: "local",
+};
+
 export function readServerEnvironment(env: NodeJS.ProcessEnv) {
-  const parsed = parseEnvironment(ServerEnvironmentSchema, env);
-  if (env.VERCEL === "1") {
-    const expected =
-      env.VERCEL_ENV === "production"
-        ? "production"
-        : env.VERCEL_ENV === "preview"
-          ? "staging"
-          : env.VERCEL_ENV === "development"
-            ? "local"
-            : undefined;
-    if (!expected || parsed.APP_ENV !== expected) {
-      throw new Error("Invalid environment configuration: APP_ENV");
-    }
-  }
-  if (parsed.DATABASE_ENABLED && parsed.SUPABASE_URL) {
-    const stagingProject = "https://gsgkoiwjkqbkuyyafzbf.supabase.co";
-    if (
-      (parsed.APP_ENV === "staging" &&
-        parsed.SUPABASE_URL !== stagingProject) ||
-      (parsed.APP_ENV === "production" &&
-        parsed.SUPABASE_URL === stagingProject)
-    ) {
-      throw new Error("Invalid environment configuration: SUPABASE_URL");
-    }
-  }
-  if (
-    parsed.APP_ENV === "production" &&
-    parsed.CLERK_JWT_ISSUER === "https://ample-chicken-233.clerk.accounts.dev"
+  // Vercel deployment context is not an application environment. Preview has
+  // none and must be credential-free; elsewhere APP_ENV is always explicit.
+  if (env.VERCEL === "1" && env.VERCEL_ENV === "preview") {
+    assertCredentialFreePreview(env);
+  } else if (
+    !env.APP_ENV ||
+    (env.VERCEL === "1" &&
+      env.APP_ENV !== deploymentBinding[env.VERCEL_ENV ?? ""])
   ) {
-    throw new Error("Invalid environment configuration: CLERK_JWT_ISSUER");
+    throw new Error("Invalid environment configuration: APP_ENV");
   }
+  const parsed = parseEnvironment(ServerEnvironmentSchema, env);
+  // Automated processes may build a Production artifact to test it, but never
+  // with an integration that would reach Production services.
+  if (
+    env.CI &&
+    env.VERCEL !== "1" &&
+    parsed.APP_ENV === "production" &&
+    (parsed.AUTH_ENABLED ||
+      parsed.DATABASE_ENABLED ||
+      parsed.PRIVILEGED_DATA_ENABLED ||
+      parsed.KAP_ENABLED)
+  )
+    throw new Error("Invalid environment configuration: CI");
   return parsed;
 }

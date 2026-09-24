@@ -49,7 +49,7 @@ describe("public configuration", () => {
     "https://[fd00::1]",
     "https://intranet",
   ])("rejects hosted insecure/local origins: %s", (origin) => {
-    for (const env of ["staging", "production"])
+    for (const env of ["production"])
       expect(() =>
         validateClientEnvironment({
           ...localClient,
@@ -99,11 +99,10 @@ describe("public configuration", () => {
   });
 
   it.each([
-    ["preview", "staging"],
     ["production", "production"],
     ["development", "local"],
   ])(
-    "builds an API-disabled scaffold on Vercel %s without app variables",
+    "binds Vercel %s to one application environment without app variables",
     (deployment, app) => {
       const result = validateClientEnvironment({
         VERCEL: "1",
@@ -115,29 +114,99 @@ describe("public configuration", () => {
       expect(result.NEXT_PUBLIC_API_ORIGIN).toBeUndefined();
     },
   );
-  it("does not default unrecognized deployments or override explicit configuration", () => {
+  it("builds Vercel Preview with no application environment and integrations off", () => {
+    const result = validateClientEnvironment({
+      VERCEL: "1",
+      VERCEL_ENV: "preview",
+      VERCEL_OIDC_TOKEN: "platform-token",
+      NEXT_PUBLIC_VERCEL_URL: "preview.vercel.app",
+      NEXT_PUBLIC_API_ORIGIN: "https://api.example.com",
+      NEXT_PUBLIC_API_ENABLED: "false",
+      NEXT_PUBLIC_DEEP_LINK_ORIGIN: "https://app.example.com",
+      NODE_ENV: "production",
+    });
+    expect(result.NEXT_PUBLIC_APP_ENV).toBeUndefined();
+    expect(result.NEXT_PUBLIC_API_ENABLED).toBe(false);
+    expect(result.NEXT_PUBLIC_AUTH_ENABLED).toBe(false);
+  });
+  it.each([
+    ["NEXT_PUBLIC_APP_ENV", "production"],
+    ["NEXT_PUBLIC_APP_ENV", "local"],
+    ["NEXT_PUBLIC_API_ENABLED", "true"],
+    ["NEXT_PUBLIC_AUTH_ENABLED", "true"],
+    ["NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "pk_test_fake"],
+    ["CLERK_SECRET_KEY", "sk_test_private-canary"],
+    ["SUPABASE_SECRET_KEY", "sb_secret_private-canary"],
+    ["SUPABASE_URL", "https://project.supabase.co"],
+    ["DATABASE_URL", "postgres://private-canary"],
+    ["KAP_API_KEY", "private-canary"],
+    ["ANTHROPIC_API_KEY", "private-canary"],
+    ["MARKET_DATA_TOKEN", "private-canary"],
+  ])("rejects %s in a Vercel Preview client build", (key, value) => {
+    const env = { VERCEL: "1", VERCEL_ENV: "preview", [key]: value };
+    expect(() => validateClientEnvironment(env)).toThrow(key);
+    expect(() => validateClientEnvironment(env)).not.toThrow("private-canary");
+  });
+  it("does not default unrecognized deployments or allow cross-binding", () => {
     expect(() =>
       validateClientEnvironment({ VERCEL: "1", VERCEL_ENV: "unknown" }),
     ).toThrow();
     expect(() =>
       validateClientEnvironment({ VERCEL_ENV: "preview" }),
     ).toThrow();
+    for (const [deployment, app] of [
+      ["production", "local"],
+      ["development", "production"],
+    ])
+      expect(() =>
+        validateClientEnvironment({
+          VERCEL: "1",
+          VERCEL_ENV: deployment,
+          NEXT_PUBLIC_APP_ENV: app,
+        }),
+      ).toThrow("NEXT_PUBLIC_APP_ENV");
+    expect(() =>
+      validateClientEnvironment({ NEXT_PUBLIC_APP_ENV: "staging" }),
+    ).toThrow("NEXT_PUBLIC_APP_ENV");
+  });
+  it("keeps an absent application environment integration-free at runtime", () => {
+    for (const bad of [
+      {
+        NEXT_PUBLIC_API_ENABLED: "true",
+        NEXT_PUBLIC_API_ORIGIN: "https://api.example.com",
+      },
+      {
+        NEXT_PUBLIC_AUTH_ENABLED: "true",
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_fake",
+      },
+      { NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_fake" },
+    ])
+      expect(() => parseEnvironment(PublicEnvironmentSchema, bad)).toThrow();
+  });
+  it("requires live publishable keys for Production auth only", () => {
+    const production = {
+      NEXT_PUBLIC_APP_ENV: "production",
+      NEXT_PUBLIC_API_ENABLED: "true",
+      NEXT_PUBLIC_API_ORIGIN: "https://api.example.com",
+    };
+    expect(validateClientEnvironment(production).NEXT_PUBLIC_AUTH_ENABLED).toBe(
+      false,
+    );
     expect(() =>
       validateClientEnvironment({
-        VERCEL: "1",
-        VERCEL_ENV: "preview",
-        NEXT_PUBLIC_APP_ENV: "",
+        ...production,
+        NEXT_PUBLIC_AUTH_ENABLED: "true",
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_fake",
       }),
-    ).toThrow();
+    ).toThrow("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
     expect(
       validateClientEnvironment({
-        VERCEL: "1",
-        VERCEL_ENV: "preview",
-        NEXT_PUBLIC_APP_ENV: "production",
-      }).NEXT_PUBLIC_APP_ENV,
-    ).toBe("production");
+        ...production,
+        NEXT_PUBLIC_AUTH_ENABLED: "true",
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_live_fake",
+      }).NEXT_PUBLIC_AUTH_ENABLED,
+    ).toBe(true);
   });
-
   it("exposes only allowlisted public settings", () => {
     expect(
       parseEnvironment(PublicEnvironmentSchema, {
@@ -280,66 +349,147 @@ describe("server configuration", () => {
     ).toThrow("SUPABASE_PUBLISHABLE_KEY");
   });
 
-  it("binds hosted builds to their Vercel deployment environment", () => {
+  it("binds Vercel Production and Development to one explicit environment", () => {
+    const hosted = { VERCEL: "1", CLIENT_ORIGINS: "https://app.example.com" };
     expect(
       readServerEnvironment({
-        VERCEL: "1",
-        VERCEL_ENV: "preview",
-        APP_ENV: "staging",
-        CLIENT_ORIGINS: "https://preview.example.com",
+        ...hosted,
+        VERCEL_ENV: "production",
+        APP_ENV: "production",
       }).APP_ENV,
-    ).toBe("staging");
+    ).toBe("production");
     for (const [vercelEnv, appEnv] of [
-      ["preview", "production"],
-      ["production", "staging"],
-      ["unknown", "staging"],
-    ]) {
+      ["production", undefined],
+      ["production", "local"],
+      ["development", "production"],
+      ["unknown", "production"],
+    ])
       expect(() =>
         readServerEnvironment({
-          VERCEL: "1",
+          ...hosted,
           VERCEL_ENV: vercelEnv,
           APP_ENV: appEnv,
-          CLIENT_ORIGINS: "https://app.example.com",
         }),
       ).toThrow("APP_ENV");
+    expect(() =>
+      readServerEnvironment({ ...localServer, APP_ENV: "staging" }),
+    ).toThrow("APP_ENV");
+  });
+
+  const preview = {
+    VERCEL: "1",
+    VERCEL_ENV: "preview",
+    CLIENT_ORIGINS: "https://preview.example.com",
+  };
+  it("runs Vercel Preview with no application environment and integrations off", () => {
+    const result = readServerEnvironment({
+      ...preview,
+      VERCEL_OIDC_TOKEN: "platform-token",
+      VERCEL_GIT_COMMIT_SHA: "sha",
+      AUTH_ENABLED: "false",
+      NODE_ENV: "production",
+      LOG_LEVEL: "info",
+    });
+    expect(result.APP_ENV).toBeUndefined();
+    expect(result.AUTH_ENABLED).toBe(false);
+    expect(result.DATABASE_ENABLED).toBe(false);
+    expect(() =>
+      readServerEnvironment({
+        ...preview,
+        CLIENT_ORIGINS: "http://localhost:3000",
+      }),
+    ).toThrow("CLIENT_ORIGINS");
+  });
+  it.each([
+    ["APP_ENV", "production"],
+    ["APP_ENV", "local"],
+    ["AUTH_ENABLED", "true"],
+    ["DATABASE_ENABLED", "true"],
+    ["PRIVILEGED_DATA_ENABLED", "true"],
+    ["KAP_ENABLED", "true"],
+    ["CLERK_SECRET_KEY", "sk_test_private-canary"],
+    ["CLERK_JWT_ISSUER", "https://example.clerk.accounts.dev"],
+    ["SUPABASE_URL", "https://project.supabase.co"],
+    ["SUPABASE_PUBLISHABLE_KEY", "sb_publishable_private-canary"],
+    ["SUPABASE_SECRET_KEY", "sb_secret_private-canary"],
+    ["SUPABASE_SERVICE_ROLE_KEY", "private-canary"],
+    ["DATABASE_URL", "postgres://private-canary"],
+    ["PGPASSWORD", "private-canary"],
+    ["KAP_BASE_URL", "https://example.com"],
+    ["KAP_API_SECRET", "private-canary"],
+    ["OPENAI_API_KEY", "private-canary"],
+    ["AI_GATEWAY_API_KEY", "private-canary"],
+    ["MARKET_DATA_SECRET", "private-canary"],
+  ])("rejects %s in a Vercel Preview API", (key, value) => {
+    const env = { ...preview, [key]: value };
+    expect(() => readServerEnvironment(env)).toThrow(key);
+    try {
+      readServerEnvironment(env);
+    } catch (error) {
+      expect(String(error)).not.toContain("private-canary");
     }
   });
 
-  it("pins staging data and rejects its use in production", () => {
-    const database = {
-      DATABASE_ENABLED: "true",
-      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fake",
+  it("requires no Clerk configuration for Production with auth disabled", () => {
+    const production = {
+      APP_ENV: "production",
+      CLIENT_ORIGINS: "https://app.example.com",
     };
-    const stagingUrl = "https://gsgkoiwjkqbkuyyafzbf.supabase.co";
-    const staging = {
-      ...database,
-      APP_ENV: "staging",
-      CLIENT_ORIGINS: "https://preview.example.com",
+    expect(readServerEnvironment(production).AUTH_ENABLED).toBe(false);
+    const auth = {
+      ...production,
+      AUTH_ENABLED: "true",
+      CLERK_SECRET_KEY: "sk_live_fake",
+      CLERK_JWT_ISSUER: "https://clerk.example.com",
     };
-    expect(
-      readServerEnvironment({ ...staging, SUPABASE_URL: stagingUrl })
-        .DATABASE_ENABLED,
-    ).toBe(true);
+    expect(readServerEnvironment(auth).AUTH_ENABLED).toBe(true);
+    expect(() =>
+      readServerEnvironment({ ...production, AUTH_ENABLED: "true" }),
+    ).toThrow("CLERK_SECRET_KEY");
+    expect(() =>
+      readServerEnvironment({ ...auth, CLERK_SECRET_KEY: "sk_test_fake" }),
+    ).toThrow("CLERK_SECRET_KEY");
+    for (const issuer of [
+      "https://ample-chicken-233.clerk.accounts.dev",
+      "https://another-instance.clerk.accounts.dev",
+      "https://X.Clerk.Accounts.Dev.",
+    ])
+      expect(() =>
+        readServerEnvironment({ ...auth, CLERK_JWT_ISSUER: issuer }),
+      ).toThrow("CLERK_JWT_ISSUER");
+  });
+
+  it("keeps Local and automated processes away from Production services", () => {
     expect(() =>
       readServerEnvironment({
-        ...staging,
-        SUPABASE_URL: "https://other-project.supabase.co",
+        ...localServer,
+        DATABASE_ENABLED: "true",
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fake",
       }),
     ).toThrow("SUPABASE_URL");
+    const production = {
+      CI: "true",
+      APP_ENV: "production",
+      CLIENT_ORIGINS: "https://app.example.com",
+    };
+    expect(readServerEnvironment(production).APP_ENV).toBe("production");
     expect(() =>
       readServerEnvironment({
-        ...staging,
-        APP_ENV: "production",
-        SUPABASE_URL: stagingUrl,
+        ...production,
+        DATABASE_ENABLED: "true",
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fake",
       }),
-    ).toThrow("SUPABASE_URL");
+    ).toThrow("CI");
     expect(() =>
       readServerEnvironment({
-        APP_ENV: "production",
-        CLIENT_ORIGINS: "https://app.example.com",
-        CLERK_JWT_ISSUER: "https://ample-chicken-233.clerk.accounts.dev",
+        ...production,
+        AUTH_ENABLED: "true",
+        CLERK_SECRET_KEY: "sk_live_fake",
+        CLERK_JWT_ISSUER: "https://clerk.example.com",
       }),
-    ).toThrow("CLERK_JWT_ISSUER");
+    ).toThrow("CI");
   });
 
   it("never includes submitted credentials or raw validation details in errors", () => {
