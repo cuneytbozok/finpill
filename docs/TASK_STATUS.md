@@ -17,7 +17,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 01.10 | in_progress — branch `codex/01.10-integrated-platform-proof`; awaiting owner review and A01–A03 acceptance |
+| 01.10 | in_progress — PR #26; awaiting owner review and A01–A03 acceptance |
 
 ## Active blockers and prerequisites
 
@@ -58,7 +58,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 | 01.07 | complete — PR #21 (BC-19 deferral) |
 | 01.08 | complete — PR #8, PR #14 |
 | 01.09 | complete — PR #23; Production API verified in the closeout PR |
-| 01.10 | in_progress |
+| 01.10 | in_progress — PR #26 |
 
 ### Phases 02–10
 
