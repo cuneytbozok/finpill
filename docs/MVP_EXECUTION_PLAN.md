@@ -2,10 +2,9 @@
 
 **Canonical roadmap:** `docs/MVP_EXECUTION_PLAN.md`  
 **Status:** Approved implementation roadmap. Approval establishes direction and execution order; it does not mark tasks complete or architecture gates passed.  
-**Baseline:** PROJECT_BLUEPRINT.md v0.3, repository instructions, previous architecture-readiness review, and the product-owner decisions recorded below.  
-**Execution tracking:** [Task status and handoff](TASK_STATUS.md).  
-**Correction tracking:** [Blueprint correction register](BLUEPRINT_CORRECTIONS.md).  
-**Project instructions:** [Root AGENTS.md](../AGENTS.md).
+**Baseline:** originally PROJECT_BLUEPRINT.md v0.3; reconciled with [blueprint v0.5](PROJECT_BLUEPRINT.md) on 2026-09-24.  
+**Owns:** task scope, order, dependencies and acceptance criteria. Current architecture lives in the blueprint; execution state in [TASK_STATUS.md](TASK_STATUS.md); workflow in [AGENTS.md](../AGENTS.md).  
+**Correction traceability:** [Blueprint correction register](BLUEPRINT_CORRECTIONS.md).
 
 ## 1. Product boundary and architectural direction
 
@@ -17,6 +16,8 @@
 - Approved research-navigation revision (2026-09-23, BC-18): three primary destinations (Ana Sayfa, İzleme, Daha Fazla), persistent global search, and company-context analysis/Q&A. Preserve company Q&A and private conversations in MVP. The mockup is illustrative; blueprint v0.4 governs periods, provenance, freshness and accessibility. Existing phase order, dependencies and architecture gates remain unchanged.
 - Require **20 deliberately selected companies × 12 financial quarters** for historical validation and backfill completion.
 - Keep ingestion, identifiers, schemas, and processing full-market capable. The cohort is a validation and initial coverage boundary, not a hard-coded platform limit.
+- Environment model (2026-09-24): two application/data environments, **Local** and **Production** (the single hosted private application). The private pilot is a usage/release mode of Production. Vercel Preview is a credential-free deployment context with no application environment. No hosted Staging environment is required during this phase. Hosted Production authentication (owned domain plus Clerk live instance) is deferred; integrated authentication is proven against Local. See [ENVIRONMENTS.md](ENVIRONMENTS.md) and [A03](adr/A03-environments-and-releases.md).
+- Delivery process (2026-09-24): production-grade data model, startup-grade delivery process. The workflow, testing tiers and native-evidence triggers are in [AGENTS.md](../AGENTS.md).
 - Defer public launch, public data redistribution approval, billing, public store publication, push notifications, and late native polish. These deferrals must not require replacement of the underlying architecture.
 
 Retain all agreed MVP capabilities: financial ingestion, historical statements, deterministic metrics, EOD valuation, company search, watchlist, disclosure timeline, AI extraction, company Q&A, “what changed” analysis, source drill-down, freshness, and operational recovery.
@@ -43,13 +44,13 @@ The roadmap therefore begins with documentation and repository foundations. Live
 | Data | Supabase PostgreSQL and private Storage; append-only sources and financial outputs; mutable operational state and current-version pointers kept separate. |
 | Processing | Supabase Cron dispatches authenticated, bounded Vercel job runs. PostgreSQL owns jobs, claims, leases, checkpoints, retries, and deduplication. |
 | AI | Vercel AI SDK/Gateway, PostgreSQL generation records, and pgvector for narrative retrieval. Financial arithmetic remains deterministic. |
-| Deployments | Separate client/API deployment targets, coordinated releases, isolated local/staging/pilot configuration, and backward-compatible APIs for installed native clients. |
+| Deployments | Separate client/API Vercel projects and coordinated releases. Application environments are Local and Production. Vercel Preview is credential-free, and Production configuration fails closed. APIs stay backward-compatible for installed native clients. |
 
 Next.js documents static SPA deployment, while request-time server features require a server runtime. This supports the selected client/API split. Capacitor expects compiled web assets; the native authentication adapters remain an explicit implementation gate rather than an assumed off-the-shelf integration. [Next.js SPA migration guidance](https://nextjs.org/docs/app/guides/migrating/from-vite), [Capacitor configuration](https://capacitorjs.com/docs/config), [Clerk iOS SDK](https://clerk.com/docs/ios/getting-started/quickstart), [Clerk Android SDK](https://clerk.com/docs/android/getting-started/quickstart).
 
 ## 2. Cross-cutting contracts and architecture gates
 
-These contracts must be recorded before dependent tasks proceed. An ADR is accepted only when its required evidence exists.
+These contracts must be recorded before the dependent work in each row's last column proceeds. A gate blocks only that listed work, not unrelated tasks. An ADR is accepted only when its required evidence exists. ADRs are for consequential decisions; ordinary implementation needs none.
 
 ### Architecture gates
 
@@ -57,7 +58,7 @@ These contracts must be recorded before dependent tasks proceed. An ADR is accep
 |---|---|---|
 | **A01 — Web/native runtime** | Shared static client, API separation, routing adapters, asset loading, native navigation, canonical in-app and web routes, safe external-link parsing, and client/API compatibility. Release-mode builds must work without a development server. OS-verified HTTPS Universal/App Link association is deferred post-MVP by the 2026-09-24 owner decision; it is not A01 evidence. | Product screen implementation beyond the foundation shell. |
 | **A02 — Identity and authorization** | Clerk SDK adapters; verified bearer-token API access; text Clerk subject IDs; Supabase JWT integration; RLS; private-pilot eligibility; separate machine/admin authority. | Watchlists, preferences, conversations, and privileged operations. |
-| **A03 — Environments and releases** | Public/server configuration boundaries, deployment origins, native application IDs, signing ownership, secrets, preview isolation, and installed-client compatibility. | Staging/native integration and pilot deployment. |
+| **A03 — Environments and releases** | Local + Production application environments; credential-free Preview deployment context; Local/CI isolation from Production; fail-closed Production configuration; public/server configuration boundaries; deployment origins; native application IDs; signing ownership; secrets; installed-client compatibility. | Native release profiles and Production deployment with credentials. |
 | **A04 — Issuer/security identity** | Stable issuer and security IDs, KAP mappings, effective-dated ticker/ISIN aliases, disclosure associations, and security-level prices. | Directory, disclosure, financial, and market migrations. |
 | **A05 — Immutable source revisions** | Logical source identity, representation/subreport scope, exact payload storage, acquisition records, hashes, revisions, and append-only enforcement. | Persistent ingestion. |
 | **A06 — Exact numbers** | Lossless parsing, decimal strings, PostgreSQL numeric storage, `decimal.js`, rounding, formatting, and chart-only approximations. | Fact normalization and any financial computation. |
@@ -165,7 +166,7 @@ There are **80 tasks**. IDs are permanent, even if future amendments reorder exe
 
 Dependencies listed below are direct dependencies; their prerequisites are inherited.
 
-Every code task includes lint, typecheck, relevant tests, and review. Additional test labels:
+Every code task includes lint, typecheck, relevant tests and review. These map onto the testing tiers in [AGENTS.md](../AGENTS.md): U/C/I/G/F/S are Tier 1–2 and run when the task touches that contract. E and N are Tier 3 and run only when the task changes the relevant platform, auth-bridge, routing or release code, or is a milestone (01.10, 07.08, 10.06–10.07). D reviews documentation. Additional test labels:
 
 - **U:** unit/property tests.
 - **I:** database/service integration tests.
@@ -191,7 +192,7 @@ Every code task includes lint, typecheck, relevant tests, and review. Additional
 | **00.02** | 00.01 | Git/GitHub setup, branch/PR conventions, Node/npm pins, ignore rules. | Confirm repository owner/destination. Use Node 24 LTS, npm 11, exact compatible patches, and one lockfile. Secrets and generated assets are excluded. **D:** fresh-clone procedure reviewed. |
 | **00.03** | 00.02 | Client/API/contracts npm workspace; strict TypeScript; lint, formatting, unit-test and build commands. | Both application targets build independently. Import rules prohibit server modules in the client. **U:** boundary checks; clean-install build smoke. |
 | **00.04** | 00.03 | Zod environment schemas and environment matrix. | Separate build-time public settings from server secrets. Validate API origins and feature-specific requirements. No production fallback to development services. **U/S:** malformed/missing settings and secret-bundle checks. |
-| **00.05** | 00.03 | Local Supabase/container setup, migration workflow, disposable test database, initial CI. | Fresh database replay succeeds; tests never target pilot data. CI runs frozen installation and required checks. **I:** clean migration replay and database connectivity. |
+| **00.05** | 00.03 | Local Supabase/container setup, migration workflow, disposable test database, initial CI. | Fresh database replay succeeds; tests never target the hosted Production database. CI runs frozen installation and required checks. **I:** clean migration replay and database connectivity. |
 | **00.06** | 00.01 | Access register for GitHub, Supabase, Clerk, Vercel, KAP, market providers, domains, native signing, and fixtures. | Each prerequisite has an owner, environment, status, and consuming task. Record rights evidence without secrets. Missing access blocks only its dependent task. **D:** no prerequisite is implicitly assumed available. |
 
 **ADRs:** Draft A01–A03.  
@@ -220,11 +221,11 @@ Every code task includes lint, typecheck, relevant tests, and review. Additional
 | **01.06** | 01.03, 00.05 | Clerk/Supabase integration, minimal profiles, pilot eligibility, RLS and user-scoped database client. | A cannot access or modify B’s rows; anonymous/uninvited access fails directly through the Data API as well as through the API application. User requests never use service-role authority. **I/S:** ownership, reassignment, token and eligibility tests. |
 | **01.07** | 01.02, 01.03 | Prepared Universal/App Link configuration and shared navigation adapter. | Route and trust logic, native event handling and builds are implemented and tested; PR #21 was owner-accepted and merged. OS-verified HTTPS app opening is an explicit post-MVP exception. Live sign-in return, browser Back and Android Back remain task 01.10 acceptance. Legacy `/ai` resolves to `/search` without guessing company context or creating a redirect loop. **C/S:** canonical routes, malformed URLs and untrusted redirect targets. |
 | **01.08** | 01.01 | Turkish design tokens, light/dark/system themes, typography, shell navigation and reusable state primitives. | Three primary destinations (Ana Sayfa, İzleme, Daha Fazla) and equivalent desktop navigation match blueprint v0.4. Persistent search entry, desktop keyboard access, detail-page return/focus behavior and legacy `/ai` compatibility work without a global AI tab. Company detail must not be identified as the Home page. Real directory results remain 07.01 scope. Safe areas, focus, contrast, reduced motion, and loading/empty/error/stale primitives work. **E/N:** responsive and accessibility checks, narrow-screen labels/secondary-text contrast, and web/iOS/Android shell navigation. Existing five-destination evidence does not satisfy the revised acceptance. |
-| **01.09** | 00.05, 00.06, 01.01, 01.02 | Client/API Vercel previews, staging origins, native build pipeline and release metadata. | Builds use the intended environment; preview credentials cannot reach pilot resources. Native builds consume a versioned API. **C/N/S:** deployed health, origin/CORS, build-profile and secret checks. |
-| **01.10** | 01.04–01.09 | Integrated platform proof and accepted foundation ADRs. | On web/iOS/Android: invited sign-in → protected API → RLS-controlled row → canonical in-app navigation → sign-out. Verify sign-in return, browser Back, Android Back and safe route handling. OS-verified HTTPS links opening native apps are post-MVP. Test production-style Clerk configuration, not only development keys. **E/N/I/S:** full flow and identity-switch cache isolation. |
+| **01.09** | 00.05, 00.06, 01.01, 01.02 | Environment-contract migration, separate client/API Vercel projects, native release profiles and release metadata. | Replace the `local`/`staging`/`production` schema with `local`/`production` application environments. Vercel Preview maps to **no** application environment; it builds and runs with API, auth, database, privileged, KAP, AI and provider integrations disabled, and rejects Finpill, provider and data-access credentials, but not ordinary settings or Vercel system variables. Remove the Preview → `staging` client mapping and any hard-coded staging project or issuer identity. Production fails closed: with auth disabled it runs without Clerk; with auth enabled it requires live keys and rejects development/test keys and the development issuer. Prove automated tests and CI cannot target Production. The API project has deployed `/api/v1` health and exact-origin CORS. Native `local`/`production` release profiles produce a manifest and pass artifact secret scans. Audit Vercel scopes so Preview holds no credentials. Re-evaluate draft PR #23 (built under the superseded staging contract) and reuse what fits. **C/N/S:** environment-contract, Preview-credential rejection, Production fail-closed, CI-isolation, deployed health/CORS, build-profile and artifact-secret checks. |
+| **01.10** | 01.04–01.09 | Integrated platform proof against Local and accepted foundation ADRs. | Uses the development Clerk instance, a disposable local Supabase and a local API reachable from browser, simulator, emulator or device. Any native local-networking allowance is limited to local builds and absent from production-profile artifacts. **API/database level (once):** the full two-account authorization/RLS matrix via real Clerk-issued tokens, covering ownership, cross-user read/write denial, reassignment, eligibility and anonymous/invalid tokens; this includes the browser-issued API path left unverified in 01.06. **Web:** full E2E: invited sign-in → protected API → owned row → canonical navigation, sign-in return, browser Back → sign-out, plus identity-switch cache isolation. **iOS and Android:** a minimal real-token proof each: sign-in → protected API → own data read → sign-out, plus sign-in return, Android Back and identity-switch cache isolation; the web RLS matrix is not repeated per platform. Production auth configuration is covered by automated fail-closed tests from 01.09; live hosted authentication is a deferred Production prerequisite (owner decision 2026-09-24). OS-verified HTTPS links opening native apps are post-MVP. **E/N/I/S.** |
 
 **ADRs:** Accept A01–A03. A failed native authentication proof blocks dependent UI; it cannot be deferred to final hardening.  
-**Exit gate:** Authenticated, authorized, production-style web/native shells are demonstrated.  
+**Exit gate:** Authenticated, authorized web/native shells are demonstrated against Local. Preview is credential-free and Production configuration fails closed.  
 **Safe parallel worktrees:** iOS and Android adapters after shared interfaces merge; design-system work alongside authentication; deployment work alongside platform adapters. One owner controls shared auth contracts.
 
 ---
@@ -266,7 +267,7 @@ Every code task includes lint, typecheck, relevant tests, and review. Additional
 | **03.04** | 03.03, 02.03 | Disclosure-detail and required attachment acquisition. | Real FR/non-FR responses become immutable revisions. Attachment failure does not discard usable structured data. Outbound URLs, sizes and types are constrained. **C/I/S:** representation variants, changed content, interrupted download, unsafe URLs. |
 | **03.05** | 03.04, 02.07 | Bounded backfill, explicit reprocessing and correction reconciliation. | Backfill has independent checkpoints and cannot starve live sync. Verify whether same-index corrections occur; use the validated correction mechanism or bounded reconciliation. **F/C:** resume, pause, restart, rate budget and same-index mutation. |
 | **03.06** | 03.03, 02.07, 01.06 | Initial operator commands for cursor/status, failed jobs, retry, reprocess and bounded backfill. | Routine recovery requires no manual database edits. Commands enforce operator authority and retain audit records. **I/S/F:** unauthorized commands and safe repeated recovery. |
-| **03.07** | 03.05, 03.06 | Unattended staging synchronization proof. | Scheduled discovery → persisted source → completed acquisition jobs survives restart, duplicate triggers and provider outage. Parser/AI handlers remain disabled until implemented. **F/I:** replay tests plus controlled live-source evidence. |
+| **03.07** | 03.05, 03.06 | Unattended synchronization proof on the hosted Production project. | Requires owner approval and KAP credentials in the Production API secret store. Failure injection and replay may run Local. Scheduled discovery → persisted source → completed acquisition jobs survives restart, duplicate triggers and provider outage. Parser/AI handlers remain disabled until implemented. **F/I:** replay tests plus controlled live-source evidence. |
 
 **ADRs:** Finalize KAP details in A05/A08.  
 **Exit gate:** A real disclosure is durably persisted, and automated acquisition recovers without lost checkpoints.  
@@ -415,12 +416,12 @@ Every code task includes lint, typecheck, relevant tests, and review. Additional
 |---|---|---|---|
 | **10.01** | 03.05, 05.07, 06.06, 08.07 | Completed cohort history and coverage report. | All 20 selected companies have 12 displayed quarters plus predecessor inputs required for initial YoY/TTM/as-of valuation. Coverage, applicability and source limitations are explicit. **G/I:** full backfill replay, missing-period audit and selected manual checks. |
 | **10.02** | 03.06, 05.06, 06.05, 08.07 | Complete operator surface/commands and audit trail. | Inspect freshness, cursors, failures, unmapped concepts, parser/AI errors and rate-limit events; retry/reprocess/backfill without editing rows. **S/F/E:** least privilege and repeatable recovery. |
-| **10.03** | 10.02, 09.06 | Operational dashboards, alert rules and runbooks. | Monitor scheduler heartbeat, backlog age, source lag, validation failures, AI errors/costs and EOD gaps. Logs carry correlation IDs and redact secrets/private prompts. **F/S:** inject each monitored failure and verify detection. |
-| **10.04** | 02.03, 05.06, 10.02 | Backup/restore and deployment-recovery exercise. | Restore database and source objects into an isolated environment; verify lineage and resume processing. Record observed RPO/RTO against approved pilot targets. **F/I:** restore, job recovery and application rollback. |
-| **10.05** | 09.06, 10.02 | Full threat-model/security acceptance. | No unresolved critical/high issues affecting authorization, source integrity or secrets. Test RLS, invitation enforcement, admin/machine separation, XSS, SSRF, CORS, attachment handling and AI tool boundaries. **S:** direct API/Data API attacks and artifact scans. |
-| **10.06** | 09.06 | Accessibility, performance and native usability hardening. | Core WCAG 2.1 AA flows, mobile keyboard/safe areas, charts/tables and error recovery pass on representative real devices. **E/N:** measured performance, reduced motion, screen-reader/keyboard and network-loss checks. |
-| **10.07** | 10.01, 10.03–10.06 | Pilot release candidate, compatibility checks and operational soak. | Real supported API credentials and permitted pilot data use verified. Run at least five BIST trading days with scheduled ingestion/EOD jobs and controlled recovery drills. Installed client compatibility is proven. **E/N/F/G:** release candidate evidence. |
-| **10.08** | 10.07 | Independent MVP acceptance and next-stage handoff. | Every completion item below has evidence, build/version identifiers and a reviewer. Remaining items are explicitly post-MVP; no required feature is silently deferred. **D:** acceptance review. |
+| **10.03** | 10.02, 09.06 | Failure/staleness alerts and recovery runbooks. | Alert the owner on scheduler heartbeat loss, backlog age, source lag, validation failures, AI errors/cost overruns and EOD gaps. Dashboards are optional for a single private user. Logs carry correlation IDs and redact secrets/private prompts. **F/S:** inject each monitored failure and verify detection. |
+| **10.04** | 02.03, 05.06, 10.02 | Backup/restore and deployment-recovery exercise. | Restore database and source objects into an isolated Local/disposable database; verify lineage and resume processing. Record the observed recovery point and time. Formal RPO/RTO targets remain a public-release gate. **F/I:** restore, job recovery and application rollback. |
+| **10.05** | 09.06, 10.02 | Focused security review and attack tests. | A written checklist review, not a formal threat-model ceremony. No unresolved critical/high issues affecting authorization, source integrity or secrets. Test RLS, invitation enforcement, admin/machine separation, XSS, SSRF, CORS, attachment handling and AI tool boundaries. **S:** direct API/Data API attacks and artifact scans. |
+| **10.06** | 09.06 | Accessibility, performance and native usability hardening. | Baseline accessibility for core flows: keyboard and screen-reader smoke checks, contrast, focus, reduced motion. Mobile keyboard/safe areas, charts/tables and error recovery work on the owner's devices. Formal WCAG 2.1 AA conformance is a public-release gate. **E/N:** measured performance, reduced motion, screen-reader/keyboard and network-loss checks. |
+| **10.07** | 10.01, 10.03–10.06 | Private-pilot release candidate on Production, compatibility checks and controlled operational run. | Hosted Production authentication is enabled first: owned domain, Clerk live instance, hosted Supabase trust switched to the live issuer, development-issuer trust and test rows removed, secrets rotated (all owner-approved). Real supported API credentials and permitted pilot data use verified. Run at least one full BIST trading day of scheduled ingestion and EOD jobs, with controlled failure/recovery drills. Installed client compatibility is proven. **E/N/F/G:** release candidate evidence. |
+| **10.08** | 10.07 | Owner MVP acceptance and next-stage handoff. | Every completion item below has evidence (in PRs), build/version identifiers and owner sign-off. Remaining items are explicitly post-MVP; no required feature is silently deferred. **D:** acceptance review. |
 
 **ADRs:** Confirm all accepted ADRs match the delivered system; record any justified changes before release.  
 **Exit gate:** Invited users can use the full product on web, iOS and Android, with tested operations and complete acceptance evidence.  
@@ -446,9 +447,9 @@ Important converging gates:
 - **04.05:** restatement/as-of selection blocks metrics and historical valuation.
 - **05.06–05.07:** stable metric generations and lineage block most financial UI and AI.
 - **02.08 → 06.06:** market access and historical inputs form a separate completion-critical branch.
-- **10.01 and 10.07:** cohort completion and trading-day soak cannot be replaced by unit-test success.
+- **10.01 and 10.07:** cohort completion and the real scheduled operational run cannot be replaced by unit-test success.
 
-External access, native signing, production-style Clerk behavior, and data-provider historical coverage can dominate elapsed time. Start their evidence gathering in 00.06 rather than when the dependent feature is almost finished.
+External access, native signing, the hosted-authentication prerequisites (domain and Clerk live instance), and data-provider historical coverage can dominate elapsed time. Start their evidence gathering in 00.06 rather than when the dependent feature is almost finished.
 
 ### Worktree lanes
 
@@ -465,9 +466,7 @@ External access, native signing, production-style Clerk behavior, and data-provi
 | After 09.01 | Q&A; analysis snapshots; later UI integration. | No separate numeric-query logic inside AI branches. |
 | Integrated candidate | Cohort audit; security; operations; native/performance verification. | Fix shared failures through reviewed, ordered merges. |
 
-Use separate Codex worktrees and task branches. Do not let agents concurrently edit shared migrations, contracts, routing, root dependencies or accepted ADRs without an explicit owner.
-
-A dependent worktree begins from the merged prerequisite commit. Stacked work is permitted only when the base PR and merge order are explicit; integration tests must run again against the final combined state.
+Use separate worktrees and task branches for implementation. Avoid concurrent edits to shared migrations, contracts, routing or root dependencies. A dependent task starts from the merged prerequisite.
 
 ## 6. End-to-end milestone map
 
@@ -483,7 +482,7 @@ A dependent worktree begins from the merged prerequisite commit. Stacked work is
 | **M7 — Disclosure intelligence** | 08.07 | New narrative disclosures become cited events and retrievable evidence. |
 | **M8 — Grounded company intelligence** | 09.06 | Company Q&A and “what changed” integrate with financials, events and valuation. |
 | **M9 — Coverage and recovery proven** | 10.01–10.06 | Required historical cohort, security, observability and restore evidence are complete. |
-| **M10 — MVP complete** | 10.08 | Invited users receive fully functional web/iOS/Android builds after operational soak. |
+| **M10 — MVP complete** | 10.08 | Invited users receive fully functional web/iOS/Android builds against Production after the controlled operational run. |
 
 ## 7. Objective MVP completion checklist
 
@@ -531,88 +530,20 @@ All items are required unless explicitly marked post-MVP.
 - [ ] Operators can recover jobs and run bounded backfill without editing database rows.
 - [ ] Freshness distinguishes publication, processing and successful checks; old financial periods are not labeled stale merely because no new report was due.
 - [ ] Authorization and private-cache isolation pass direct API and database tests.
-- [ ] CI, migration replay, preview deployment and native builds pass.
+- [ ] CI, migration replay, credential-free Preview deployment and native builds pass. Automated tests cannot target Production.
 - [ ] Backup/restore and release rollback have been exercised.
-- [ ] Accessibility and performance targets are documented and met on the agreed device/network matrix.
-- [ ] The release candidate completes at least five BIST trading days of operational soak.
+- [ ] Baseline accessibility and performance checks pass on the owner's devices. Formal WCAG conformance and performance targets are public-release gates.
+- [ ] The release candidate completes at least one full BIST trading day of scheduled ingestion/EOD with controlled failure/recovery drills.
 - [ ] Pilot data use is permitted and credentials are environment-appropriate.
-- [ ] Public launch, public redistribution, billing, store publication and push notifications remain separate release gates.
+- [ ] Public launch, public redistribution, billing, store publication, push notifications and a hosted Staging environment remain separate release gates.
 
-## 8. Required blueprint corrections
+## 8. Blueprint corrections
 
-Do not rewrite the blueprint during the documentation-adoption task. Track the corrections in [BLUEPRINT_CORRECTIONS.md](BLUEPRINT_CORRECTIONS.md) for adoption alongside accepted ADRs:
+The corrections originally listed here were reconciled into [blueprint v0.5](PROJECT_BLUEPRINT.md) on 2026-09-24, including the new environment-model correction BC-20. The [correction register](BLUEPRINT_CORRECTIONS.md) keeps their traceability and the few items still recorded. Applying a correction documents approved direction; it does not accept an ADR or claim implementation.
 
-1. **§4–5, §25, §37, §44:** replace the ambiguous “same Next.js application in Capacitor” assumption with the approved shared static client plus separate Next.js API architecture and early native proof.
-2. **§22–24:** retain canonical product routes, specify client-side routing/deep-link adapters, and introduce versioned API contracts.
-3. **§12.18, §32:** define Clerk text identities, native authentication adapters, Supabase third-party JWT integration, RLS and separate user/operator/machine authorities.
-4. **§12.1–2, §12.13:** separate issuer identity from security/ticker identity; key prices by security and retain effective-dated mappings.
-5. **§12.4, §28.4:** replace the single mutable disclosure payload with logical disclosures, immutable source revisions and acquisition observations.
-6. **§12.6–11, §18:** define explicit context/source/build identity, comparative restatements, selection policies and atomic publication.
-7. **§11, §15–18:** add compatibility and applicability requirements for quarter, TTM, TMS 29, EBITDA, net debt and historical valuation.
-8. **§12.8, §19, §40:** make lossless source parsing and decimal-string transport explicit; avoid irreversible source rounding and numeric JSON examples for authoritative amounts.
-9. **§12.19, §28–31:** add claim/lease/fencing/recovery fields, transactional checkpoint rules, source-wide rate budgets and version-aware idempotency.
-10. **§28.1–4:** qualify unchanged-index behavior with verified correction semantics and bounded reconciliation.
-11. **§17, §37, §41:** make historical share counts, corporate actions, publication-time joins and EOD provider dependencies explicit.
-12. **§21, §47:** add persistent generation identities, evidence validation, conversation ownership, retrieval evaluations and embedding-version cutover.
-13. **§37–39, §50–51:** replace the original execution sequence with this dependency-driven roadmap.
-14. **§42:** record the owner-selected 20-company × 12-quarter cohort target, deliberate structural coverage and full-market-capable architecture.
-15. **§3, §14, §22:** clarify EOD valuation as required; preserve later-phase returns/scoring and optional notifications as deferred.
-16. **§43–45:** define measurable performance/recovery targets, source-specific freshness, native/API release compatibility and required operational acceptance.
-17. **§48:** distinguish permitted private-pilot use from public redistribution/store/billing release gates.
+## 9. Execution protocol
 
-## 9. Execution protocol for future Codex sessions
-
-1. **Read first**
-   - Root/project `AGENTS.md`.
-   - This execution plan and current task status.
-   - Relevant blueprint sections, accepted ADRs and predecessor handoff.
-   - Applicable package instructions and skills.
-   - Current library/API documentation through Context7.
-
-2. **Select one ready task**
-   - Confirm dependencies are merged and required gates have evidence.
-   - State task ID, deliverables, acceptance criteria and exclusions.
-   - Do not implement later tasks merely because adjacent files are convenient.
-
-3. **Prepare the worktree**
-   - Use one isolated worktree and branch per independent task.
-   - Record base commit and ownership of shared contracts/migrations.
-   - Never copy secrets into committed artifacts or use pilot data for destructive tests.
-
-4. **Implement within the accepted contracts**
-   - Use migrations for schema changes.
-   - Add fixture/golden expectations before parser or metric behavior changes.
-   - Keep raw data, normalized facts, metrics and AI outputs separate.
-   - Stop at a failed architecture gate; record the evidence and resolve the ADR before dependent implementation.
-
-5. **Verify**
-   - Run lint, typecheck and relevant tests.
-   - Run integration, native, golden and failure tests specified by the task.
-   - Use real staging evidence where the acceptance criterion requires it.
-   - Report missing access as blocked validation, never as a passed mock test.
-
-6. **Review**
-   - Review correctness, authorization, versioning, lineage, scope and regression risk.
-   - Independently review golden financial expectations.
-   - Recheck affected end-to-end flows after integration changes.
-
-7. **Update documentation and ADRs**
-   - Record accepted decisions and evidence.
-   - Update task state and correction register.
-   - Preserve prior ADR history; supersede decisions explicitly.
-   - Keep the blueprint unchanged until its correction is deliberately included in an authorized documentation change.
-
-8. **Commit and open a PR**
-   - One coherent task per PR where practical.
-   - Title includes the task ID.
-   - Description states behavior, acceptance evidence, migrations, tests and remaining limitations.
-   - Attach the PR to the Codex task.
-   - Merge only after required checks/review and authorized merge policy.
-
-9. **Handoff**
-   - Record merged commit/PR, changed contracts, migrations, test evidence and operational notes.
-   - Identify newly ready tasks and remaining blockers.
-   - The next session starts from that handoff rather than rediscovering architecture.
+The session lifecycle, owner-approval rules, testing tiers, native-evidence triggers and PR rules are defined once, in [AGENTS.md](../AGENTS.md). In short: verify `origin/main`, pick the first actionable task, load only its context, implement a complete slice, run risk-appropriate tests, update affected docs and the task row in the same PR, then stop for review. There is no separate closeout.
 
 ### Execution summary
 

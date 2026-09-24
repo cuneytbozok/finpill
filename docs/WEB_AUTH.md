@@ -14,7 +14,7 @@ Run `npm run dev:api` and `npm run dev:client` with the pinned toolchain. The we
 
 ## Deployment scopes
 
-Development Clerk keys (`pk_test_` and `sk_test_`) belong to local and isolated preview builds. A production client build with `NEXT_PUBLIC_APP_ENV=production` requires a live publishable key if authentication is enabled or the key is supplied. The separate production API requires a live secret key when auth is enabled. Keep production auth disabled and omit development keys there until a pilot instance and release gate are approved. Vercel Preview and Production variable scopes must be checked independently; a successful static build does not prove live session acceptance.
+Development Clerk keys (`pk_test_` and `sk_test_`) belong to Local builds only. Vercel Preview is credential-free, so it runs with authentication disabled. A production client build with `NEXT_PUBLIC_APP_ENV=production` requires a live publishable key if authentication is enabled or the key is supplied. The separate production API requires a live secret key when auth is enabled. Keep Production auth disabled, and never put development keys there, until an owned domain and Clerk live instance exist (a deferred prerequisite in [TASK_STATUS.md](TASK_STATUS.md)). Vercel Preview and Production variable scopes must be checked independently; a successful static build does not prove live session acceptance.
 
 ## Acceptance checklist
 
