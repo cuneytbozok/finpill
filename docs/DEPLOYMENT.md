@@ -1,82 +1,58 @@
 # Client, API and native release setup
 
-Task 01.09 uses two independent Vercel projects from this repository. The existing
-client project has repository root as its Root Directory and uses the root
-`vercel.json` to publish `apps/client/out`. The API project must use `apps/api`
-as its Root Directory, enable **Include source files outside of the Root
-Directory** for the workspace packages and lockfile, and use
-`apps/api/vercel.json`. Its build command runs the API workspace build from
-the repository root. Do not point the client project at the API configuration
-or publish the API from the static client project.
+The environment model is defined in [ENVIRONMENTS.md](ENVIRONMENTS.md) and [A03](adr/A03-environments-and-releases.md): two application environments (**Local**, **Production**) and a credential-free Vercel **Preview** deployment context.
 
-## Deployment scopes
+## Vercel projects
 
-| Project / scope | Application settings | Identity and data target |
+Two independent Vercel projects deploy from this repository:
+
+| Project | Root Directory | Configuration | Output |
+|---|---|---|---|
+| `finpill` (client) | repository root | root `vercel.json` | static export `apps/client/out` |
+| `finpill-api` (`prj_RPrp1YttJigzDOBXIUI3cYGbBjJb`) | `apps/api`, with **Include source files outside of the Root Directory** enabled | `apps/api/vercel.json` | Next.js server (`/api/v1/*`) |
+
+Do not point the client project at the API configuration or publish the API from the client project.
+
+## Settings per scope
+
+| Project / scope | Settings | Must not contain |
 |---|---|---|
-| Client Preview | `NEXT_PUBLIC_APP_ENV=staging`, `NEXT_PUBLIC_API_ENABLED=true`, exact HTTPS staging `NEXT_PUBLIC_API_ORIGIN`, `NEXT_PUBLIC_AUTH_ENABLED=true`, test `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Staging API only. No Supabase keys or server secrets. |
-| API Preview | `APP_ENV=staging`, exact HTTPS staging `CLIENT_ORIGINS`, `AUTH_ENABLED=true`, test `CLERK_SECRET_KEY`, development/test `CLERK_JWT_ISSUER`, `DATABASE_ENABLED=true`, staging `SUPABASE_URL` and publishable key | The recorded staging Supabase project is `gsgkoiwjkqbkuyyafzbf`. `PRIVILEGED_DATA_ENABLED=false`; no pilot key. |
-| Client Production | `NEXT_PUBLIC_APP_ENV=production` and pilot API/live Clerk public settings only after pilot resources exist | No development or staging identity/data. A credential-free static build may keep API/auth disabled meanwhile. |
-| API Production | `APP_ENV=production`, exact pilot `CLIENT_ORIGINS`, live Clerk secret/issuer, pilot Supabase URL/publishable key | Do not enable until the pilot project, issuer and origins are registered and verified. |
+| Client **Preview** | Nothing required. Optional non-secret settings only (for example `NEXT_PUBLIC_DEEP_LINK_ORIGIN`). `NEXT_PUBLIC_API_ENABLED`/`NEXT_PUBLIC_AUTH_ENABLED` absent or `false`. | `NEXT_PUBLIC_APP_ENV`, any Clerk key, any Supabase/KAP/AI/provider credential |
+| API **Preview** | `CLIENT_ORIGINS` (exact HTTPS origins, non-secret). All switches absent or `false`. | `APP_ENV`, any `CLERK_*`, `SUPABASE_*`, `KAP_*`, database URL, or any `*_SECRET`/`*_TOKEN`/`*_API_KEY`/`*_PASSWORD` credential |
+| Client **Production** | `NEXT_PUBLIC_APP_ENV` absent or `production`. When the API is live: `NEXT_PUBLIC_API_ENABLED=true` and the exact `NEXT_PUBLIC_API_ORIGIN`. Auth stays off until Clerk live exists; then `NEXT_PUBLIC_AUTH_ENABLED=true` with a `pk_live_` key. | Development/test Clerk keys |
+| API **Production** | `APP_ENV=production` (explicit; there is no default) and exact `CLIENT_ORIGINS`. `AUTH_ENABLED=false` until hosted Production authentication exists; then `sk_live_` secret and the live issuer. `DATABASE_ENABLED` only once the Production Supabase prerequisites in [TASK_STATUS](TASK_STATUS.md#active-blockers-and-prerequisites) are done. | `sk_test_` keys, any `*.clerk.accounts.dev` issuer, local service URLs |
 
-The API rejects a Vercel Preview with `APP_ENV=production` and a Production
-deployment with `APP_ENV=staging`. Staging database access is pinned to the
-recorded project URL; Production rejects that staging URL and the known
-development Clerk issuer. Client public validation separately requires test
-Clerk keys in Preview and live keys in Production. These are build/runtime
-guards, not proof of external service ownership or RLS behavior.
+These rules are enforced, not advisory:
 
-Set `CLIENT_ORIGINS` to the exact browser origin(s) that should call the API.
-The protected session and profile routes return CORS headers only for those
-origins. Do not use `*` or a broad preview-domain pattern. Each browser
-preview origin used for authenticated acceptance must be explicitly registered
-in the corresponding API deployment, and Clerk must authorize that origin for
-the bearer token's `azp` claim. A native request has no browser `Origin` but
-still needs a valid verified bearer token. Confirm this with deployed negative
-and positive requests; a local CORS test does not prove a hosted configuration.
+- **Preview** (`VERCEL=1`, `VERCEL_ENV=preview`): the client build and the API (build and runtime) fail if any application environment, enabled integration switch or credential-shaped name is present. Errors name the variable, never its value. Vercel system variables (`VERCEL_*`, `NEXT_PUBLIC_VERCEL_*`) and ordinary settings are allowed.
+- **Production** (`VERCEL_ENV=production`) binds to `production` only, **Development** to `local` only. A mismatch or unknown deployment context fails.
+- Production validation fails closed: missing required settings stop the build or startup rather than falling back to development services.
 
-The API health endpoint is `/api/v1/health` and returns `apiVersion: "v1"`.
-Release clients use `/api/v1` through the shared transport. Keep v1 compatible
-with installed native clients. Introduce a new version before removing or
-changing a v1 contract. Public client settings are frozen into static/native
-assets, so an origin or key change requires rebuilding and reinstalling the
-native app.
+## API contract, CORS and native compatibility
 
-## Native build profile
+`/api/v1/health` returns `{"status":"ok","apiVersion":"v1"}` in every context, including a credential-free Preview. The protected session/profile routes return CORS headers only for exact `CLIENT_ORIGINS`; a disallowed origin gets `403`. Do not use `*` or a preview-domain pattern. A native request has no browser `Origin` but still needs a verified bearer token. Local CORS tests do not prove hosted configuration; confirm with deployed requests.
 
-On macOS with the pinned Node/npm toolchain, JDK 21, Android SDK 36 and Xcode,
-set `FINPILL_API_ORIGIN` to the target's exact HTTPS origin and
-`FINPILL_CLERK_PUBLISHABLE_KEY` to a matching test/live public key. Then run:
+Native clients use `/api/v1` through the shared transport. Keep v1 compatible with installed native clients and introduce a new version before removing or changing a v1 contract. Public client settings are frozen into static/native assets, so changing an origin or key requires rebuilding and reinstalling.
+
+## Native release build
+
+There is one release profile, `production`. It targets the Production application. Its name describes the target, not a Vercel context. Local native builds for task 01.10 are separate and never use this profile.
+
+Requirements: macOS with Xcode, the pinned Node/npm toolchain, JDK 21 and Android SDK 36; a committed, clean working tree; and no `apps/client/.env*` file other than `.env.example`.
 
 ```sh
-npm run native:release -- staging
+FINPILL_API_ORIGIN=https://<production-api-host> npm run native:release -- production
 ```
 
-The pipeline checks the deployed `/api/v1/health` response for API v1 before
-building. It sets the matching client environment, enables API/auth, syncs
-the static assets to both native projects, checks identical assets, and builds
-an unsigned iOS Release simulator app and unsigned Android Release APK. It
-writes an ignored `build/native-release/staging.json` manifest with the API
-origin, source revision, API version and static index SHA-256. Use `production`
-only after pilot resources are verified. Signing and device installation are
-separate owner-controlled steps; the CI-style unsigned output is not a
-distribution artifact.
+Optional inputs: `FINPILL_CLERK_PUBLISHABLE_KEY` (a `pk_live_` key; it enables auth in the build) and `FINPILL_DEEP_LINK_ORIGIN`.
 
-For acceptance, record project IDs and exact deployment origins in the access
-register, confirm both client and API previews are Ready, request deployed
-health, test allowed/disallowed browser origins and bearer paths, inspect
-client and native artifacts for server secrets, and prove Preview credentials
-cannot access pilot resources. The Vercel connector lacks access to the
-owner's team, but authenticated Chrome can inspect project settings. The
-separate API project is `finpill-api` (`prj_RPrp1YttJigzDOBXIUI3cYGbBjJb`).
-Its task-branch Preview has only non-secret `APP_ENV=staging` and exact
-`CLIENT_ORIGINS` configured. The owner explicitly approved removing Vercel
-Authentication for the exact task-branch API Preview domain recorded in the
-access register; Production protection remains enabled. Public deployed health
-now returns API v1, allowed-origin preflight returns `204`, disallowed-origin
-preflight returns `403`, and a session request without a bearer returns `401`.
-The task-branch client Preview has branch-scoped `NEXT_PUBLIC_API_ENABLED=true`
-and the exact API Preview origin, effective after its next deployment; hosted
-auth remains disabled. The native staging profile successfully consumed that
-live API v1 and built both unsigned Release targets. Pilot resources and a
-positive hosted signed-bearer flow remain unconfirmed. Do not treat these
-checks as proof of Preview-to-pilot isolation or integrated authentication.
+The pipeline:
+
+1. Rejects unknown profiles, non-hosted API origins and non-live keys.
+2. Requires the deployed `/api/v1/health` to return API v1.
+3. Builds from an environment with inherited public, server and credential-shaped variables removed, so only the profile's public settings reach the bundle.
+4. Syncs static assets to both native projects, then builds an unsigned iOS Release simulator app and an unsigned Android Release APK.
+5. Inspects the packaged `.app` and the extracted APK: asset parity with the static export, no forbidden files, and no credential patterns.
+6. Writes the ignored manifest `build/native-release/production.json`. It records profile, API origin and version, auth state, source revision, toolchain, and SHA-256 hashes of the static export, the `.app` tree and the APK.
+
+Signing and device installation are separate owner-controlled steps. The unsigned output is not a distribution artifact.
