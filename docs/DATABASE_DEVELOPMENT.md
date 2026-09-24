@@ -18,11 +18,11 @@ npm run db:start
 npm run db:stop
 ```
 
-`db:start` starts only Supabase Postgres; it does not claim that Auth, Storage or Data API services are running. `db:stop` preserves local volumes. Database port is 54322, shadow port 54320. The tracked config uses `finpill-local` as its local container identity. No login or `supabase link` is needed; never link this checkout to a pilot project.
+`db:start` starts only Supabase Postgres; it does not claim that Auth, Storage or Data API services are running. `db:stop` preserves local volumes. Database port is 54322, shadow port 54320. The tracked config uses `finpill-local` as its local container identity. No login or `supabase link` is needed; never link this checkout to the hosted Production project.
 
 For simultaneous development worktrees, change the local project's `project_id`, database/shadow/API ports to unused values before starting another local stack. Do not commit a machine-specific override. Disposable integration checks below automatically isolate both identity and ports, independently of this development instance.
 
-Do not import pilot backups, provider responses or private fixtures into disposable test runs. Future authorized test fixtures need provenance and usage rights.
+Do not import Production backups, provider responses or private fixtures into disposable test runs. Future authorized test fixtures need provenance and usage rights.
 
 ## Migration workflow
 
@@ -48,9 +48,9 @@ The runner:
 4. Passes an explicit environment allowlist to the CLI, removing provider tokens, database URLs, PostgreSQL target variables and Docker context overrides. No target arguments are accepted.
 5. Starts the database, resets with explicit `--local --no-seed`, and runs real pgTAP checks.
 6. Creates an empty probe table inside that run's uniquely named container, resets again, and reruns pgTAP to prove the probe was removed and migrations replayed.
-7. Stops/removes only that generated project's containers and volumes in `finally`. It never uses `stop --all` or touches the development/pilot database.
+7. Stops/removes only that generated project's containers and volumes in `finally`. It never uses `stop --all` or touches the development or hosted Production database.
 
-A local Unix socket establishes the allowed Docker transport; operators must not forward it to a remote/pilot daemon. The script does not accept a hosted database URL or project reference. SQL fixtures/migrations execute with database-owner authority in an isolated container and must be code-reviewed.
+A local Unix socket establishes the allowed Docker transport; operators must not forward it to a remote daemon. The script does not accept a hosted database URL or project reference. SQL fixtures/migrations execute with database-owner authority in an isolated container and must be code-reviewed.
 
 First execution downloads official Supabase images and can take several minutes. A hard process/host kill can prevent cleanup; inspect `docker ps -a` for the specific `finpill-test-<uuid>` identity and remove only that abandoned test instance using the CLI's `stop --project-id <exact-id> --no-backup`. Do not use broad cleanup commands. Missing Docker or failed integration stays a failure, never a mock pass.
 

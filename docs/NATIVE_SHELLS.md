@@ -84,8 +84,9 @@ requires rebuilding the native artifacts before comparing hashes.
 3. Terminate/force-stop, then cold-launch each shell. Capture the rendered
    Finpill home screen and verify navigation to search works with no server.
 4. Repeat with network unavailable to demonstrate bundled asset loading.
-5. Record device/runtime, build mode, artifact identity, screenshots/logs and
-   outcomes in `TASK_STATUS.md`. Do not mark 01.02 complete from sync alone.
+5. Record device/runtime, build mode, artifact identity and outcomes in the
+   task PR (attach screenshots/logs there). Do not treat sync alone as runtime
+   acceptance.
 
 The shared layout exports `viewportFit: "cover"` so its CSS safe-area padding
 receives native insets. Verify the header clears the status bar and bottom
