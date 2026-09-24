@@ -17,7 +17,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| Environment/process reconciliation | Open documentation PR on `codex/docs-environment-process-reconciliation`. |
+| Environment/process reconciliation | [PR #24](https://github.com/cuneytbozok/finpill/pull/24), open for owner review. |
 | 01.09 — [PR #23](https://github.com/cuneytbozok/finpill/pull/23) | Frozen. It was built under the superseded staging/pilot contract. Do not merge it as-is. |
 
 ## Task 01.09 disposition
