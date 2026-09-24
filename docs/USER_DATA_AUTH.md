@@ -21,6 +21,17 @@ Only run that statement for an explicitly approved account. The application and 
 
 `user_profiles.user_id` stores the Clerk text subject and is the primary key. RLS requires both subject ownership and enabled eligibility for reads, inserts, and updates. Column privileges allow updating only `display_name`, so a profile cannot be reassigned. No delete path or extra user-owned tables are introduced in this task.
 
+## Bearer tokens by client
+
+- **Web:** Clerk browser session tokens name the client origin in `azp`. The API requires it to be one of `CLIENT_ORIGINS`.
+- **iOS and Android:** the native Clerk SDKs issue tokens without `azp`. The API accepts a token without `azp` only when the request comes from a native WebView origin (`capacitor://localhost` or `https://localhost`) that is listed in `CLIENT_ORIGINS`, and it rejects a browser token from a native origin. Issuer, subject, session, signature and expiry checks are identical. Hosted environments do not yet accept native origins; that is part of enabling hosted authentication.
+
+The client reads the caller's profile on the **Daha Fazla** page through `GET /api/v1/profile` and creates or renames it with `POST`/`PATCH`. The panel is keyed by the verified user ID, so sign-out or an account switch discards previous account data.
+
+## Two-account authorization matrix
+
+`tools/authorization-matrix.mjs` checks, as the signed-in account and with real Clerk tokens, both the API and the Supabase Data API: session identity, anonymous and invalid tokens, eligibility, own-profile create/read/update, duplicate create, cross-user read/update/insert denial, reassignment and delete denial, and eligibility self-change or self-grant denial. It is dependency-free so it can run in a signed-in browser page (`getToken: () => Clerk.session.getToken({ skipCache: true })`). It returns check names and HTTP statuses only. Task 01.10 results are in its PR.
+
 ## Verification history and remaining acceptance
 
 The hosted evidence below was gathered on 2026-09-23, when the owner had designated the existing hosted Supabase project as "staging". Under the 2026-09-24 environment model that same project is the single Production/private-application project. These results are historical development/test evidence obtained with the development Clerk instance; they are not the final Production identity contract. Detailed evidence is in [PR #20](https://github.com/cuneytbozok/finpill/pull/20).

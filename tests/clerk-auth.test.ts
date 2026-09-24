@@ -44,7 +44,7 @@ function token(overrides: Record<string, unknown> = {}) {
 describe("Clerk bearer authentication", () => {
   it("accepts a signed, current session from the configured instance and client", async () => {
     await expect(
-      verifyBearerSession(`Bearer ${token()}`, environment, verifier),
+      verifyBearerSession(`Bearer ${token()}`, environment, null, verifier),
     ).resolves.toEqual({ userId: "user_invited", sessionId: "sess_active" });
   });
 
@@ -60,8 +60,58 @@ describe("Clerk bearer authentication", () => {
     ["bad signature", `Bearer ${token().slice(0, -2)}xx`],
   ])("rejects %s", async (_case, authorization) => {
     await expect(
-      verifyBearerSession(authorization, environment, verifier),
+      verifyBearerSession(authorization, environment, null, verifier),
     ).resolves.toBeNull();
+  });
+
+  describe("native WebView requests", () => {
+    const native = readServerEnvironment({
+      APP_ENV: "local",
+      CLIENT_ORIGINS:
+        "http://localhost:3000,capacitor://localhost,https://localhost",
+      AUTH_ENABLED: "true",
+      CLERK_SECRET_KEY: "sk_test_fixture",
+      CLERK_JWT_ISSUER: "https://issuer.example.com",
+    });
+    const nativeToken = `Bearer ${token({ azp: undefined })}`;
+
+    it.each(["capacitor://localhost", "https://localhost"])(
+      "accepts a native SDK token without azp from %s",
+      async (origin) => {
+        await expect(
+          verifyBearerSession(nativeToken, native, origin, verifier),
+        ).resolves.toEqual({
+          userId: "user_invited",
+          sessionId: "sess_active",
+        });
+      },
+    );
+
+    it.each([
+      ["a browser token", `Bearer ${token()}`, "capacitor://localhost"],
+      ["an unlisted native origin", nativeToken, "capacitor://localhost"],
+      ["a browser origin", nativeToken, "http://localhost:3000"],
+      ["no origin", nativeToken, null],
+      [
+        "a wrong issuer",
+        `Bearer ${token({ azp: undefined, iss: "https://other.example.com" })}`,
+        "https://localhost",
+      ],
+    ])("rejects %s", async (label, authorization, origin) => {
+      const env = label === "an unlisted native origin" ? environment : native;
+      await expect(
+        verifyBearerSession(authorization, env, origin, verifier),
+      ).resolves.toBeNull();
+    });
+
+    it("keeps native origins out of hosted environments", () => {
+      expect(() =>
+        readServerEnvironment({
+          APP_ENV: "production",
+          CLIENT_ORIGINS: "https://app.example.com,capacitor://localhost",
+        }),
+      ).toThrow("CLIENT_ORIGINS");
+    });
   });
 
   it("rejects all bearer tokens when auth is disabled", async () => {
@@ -69,6 +119,7 @@ describe("Clerk bearer authentication", () => {
       verifyBearerSession(
         `Bearer ${token()}`,
         { ...environment, AUTH_ENABLED: false },
+        null,
         verifier,
       ),
     ).resolves.toBeNull();

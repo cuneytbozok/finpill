@@ -2766,7 +2766,7 @@ Do not convert API errors into empty datasets silently.
 - user, operator/admin and machine authorities are separate; user requests never use service-role authority
 - private-pilot access requires an invited Clerk account plus an enabled eligibility row
 - Vercel Preview deployments carry no Finpill, provider or data-access credentials
-- Local and CI tests never target Production resources or use Production credentials
+- CI never targets Production resources or uses Production credentials; Local may use the hosted Supabase project with user-scoped access only, never the privileged key
 - browser bundles and native artifacts are scanned for server-secret patterns; only allowlisted public settings reach the client
 
 ---
@@ -3084,7 +3084,7 @@ Rules:
 
 ```text
 Preview holds no Finpill, provider or data-access credentials and runs with those integrations disabled
-Local/CI tests never target Production resources or use Production credentials
+CI never targets Production resources; Local may use the hosted Supabase project with user-scoped access only (no privileged key)
 Production configuration fails closed; never fall back from production to development services
 Production auth is optional until enabled; when enabled it requires live Clerk keys and rejects development keys/issuer
 secrets live only in ignored local files, CI-scoped secrets or the hosting provider's secret store

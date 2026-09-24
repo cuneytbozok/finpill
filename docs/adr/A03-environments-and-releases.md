@@ -1,7 +1,7 @@
 # A03 — Environments and releases
 
 - Status: **Draft, not accepted.** The decision is approved by the owner; implementation evidence is pending in tasks 01.09 and 01.10.
-- Revised: 2026-09-24 (owner decision). Originally proposed: 2026-09-22 (task 00.04).
+- Revised: 2026-09-25 (Local may use the hosted database, user-scoped only) and 2026-09-24 (owner decisions). Originally proposed: 2026-09-22 (task 00.04).
 - Owner: project owner for environment identities and access; the implementing task for configuration contracts.
 
 ## Context
@@ -21,7 +21,7 @@ The 2026-09-22 proposal mirrored an enterprise topology that is unnecessary at t
    - **Preview maps to no application environment.** It is credential-free. It builds and runs with API, authentication, database, privileged, KAP, AI and provider integrations disabled.
    - It rejects Finpill, provider and data-access credentials, and integrations that would need them. It does not reject other server variables, ordinary non-secret settings or Vercel system variables.
    - Isolation between Preview and Production is enforced primarily by the absence of credentials.
-3. **Local/CI isolation.** Tests and CI use only local or generated disposable resources and never accept Production credentials, database URLs or project references.
+3. **CI isolation; user-scoped Local access.** CI and automated database tests use only local disposable resources and never accept Production credentials, database URLs or project references. Revised 2026-09-25 by owner decision: Local may use the hosted Supabase project with user-scoped access only (publishable key and development Clerk tokens under RLS), never with the privileged key. This removes the container-runtime requirement for Local development.
 4. **Production fails closed.** Missing required Production configuration fails rather than falling back to Local/development services.
    - Hosted authentication is optional: with `AUTH_ENABLED=false`, Production requires no Clerk configuration at all.
    - When authentication is enabled, Production requires live Clerk keys and rejects development/test keys and the development issuer.
@@ -41,9 +41,8 @@ The 2026-09-22 proposal mirrored an enterprise topology that is unnecessary at t
 
 ## Consequences
 
-- No hosted environment exists for credentialed pre-Production testing. Integrated authentication and authorization are proven against Local (task 01.10). Hosted Production authentication is a deferred prerequisite: owned domain, Clerk live instance, and switching the hosted Supabase trust to the live issuer.
-- The existing hosted Supabase project, called "staging" during task 01.06, becomes the Production project. Its development-issuer trust and development test rows are cleaned up before real Production use.
-- The code still implements `local`/`staging`/`production` and a Preview → `staging` mapping. Task 01.09 migrates it.
+- No hosted environment exists for credentialed pre-Production testing. Integrated authentication and authorization are proven against Local (task 01.10), whose API used the hosted Supabase project under the user-scoped rule above. Hosted Production authentication is a deferred prerequisite: owned domain, Clerk live instance, and switching the hosted Supabase trust to the live issuer.
+- The existing hosted Supabase project, called "staging" during task 01.06, becomes the Production project. Until hosted authentication is enabled it also serves Local development. Its development-issuer trust and development test accounts' rows are cleaned up before real Production use; after that switch, development tokens no longer satisfy its RLS, so Local needs a disposable database again or an explicit revision of this rule.
 
 ## Evidence required for acceptance
 
@@ -51,7 +50,7 @@ The 2026-09-22 proposal mirrored an enterprise topology that is unnecessary at t
   - two-value environment contract
   - Preview context with no application environment, verified to reject Finpill, provider and data-access credentials and credentialed integrations (not other server or Vercel system variables)
   - Production fail-closed tests: no Clerk configuration required with `AUTH_ENABLED=false`; live keys required and development keys/issuer rejected when auth is enabled
-  - proof that Local/CI cannot target Production
+  - proof that CI cannot target Production and Local cannot use the privileged key against it
   - separate client/API deployments with deployed v1 health and exact-origin CORS
   - a native release build path with manifest and artifact scans (profile naming and design are decided in 01.09 and need not mirror environment names)
   - a Vercel scope audit confirming no credentials in Preview

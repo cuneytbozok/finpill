@@ -11,9 +11,9 @@ On 2026-09-24 the owner approved **two** application/data environments. "Private
 | Purpose | Development, automated tests, disposable databases, local integrations | The single hosted application, used by the owner and explicitly invited users |
 | App environment value | `local` | `production` |
 | API origin, when enabled | Explicit local origin allowed | Explicit HTTPS Production API origin |
-| Client origins | Explicit comma-separated origins | Exact HTTPS Production client origins |
+| Client origins | Explicit comma-separated origins, plus the native WebViews' `capacitor://localhost` and `https://localhost` for local native builds | Exact HTTPS Production client origins |
 | Clerk | Development instance and `pk_test_`/`sk_test_` keys | Optional until hosted authentication is enabled. When `AUTH_ENABLED=true`: live instance and `pk_live_`/`sk_live_` keys only, with the development issuer rejected |
-| Supabase | Disposable local instance; CI uses generated disposable projects | The one hosted project (see the [access register](ACCESS_REGISTER.md)); never a test target |
+| Supabase | A disposable local instance, or the hosted project with user-scoped access only (no privileged key); CI uses disposable local databases only | The one hosted project (see the [access register](ACCESS_REGISTER.md)) |
 | KAP | Explicit development or production source | Production source only; the known MKK development endpoint is rejected |
 | Secrets | Ignored API `.env.local`; CI-scoped secrets only where a test needs them | API deployment secret store |
 | Public build settings | Copied local example | Set in the client deployment before build and frozen into native assets |
@@ -26,7 +26,8 @@ Vercel's `development`, `preview` and `production` values (`VERCEL_ENV`) describ
 
 | Context | Application environment | Credentials |
 |---|---|---|
-| Local machine / CI | `local` | Local or CI-scoped only. Production credentials are never used. |
+| Local machine | `local` | Local, plus the hosted project's publishable key and development Clerk keys. Never the privileged Supabase key or live Clerk keys. |
+| CI | `local` | CI-scoped only. Never a hosted project or Production credential. |
 | Vercel Development (`vercel dev`/pull) | `local` | Local/development only |
 | Vercel **Preview** | **None.** Preview is a credential-free build context. | No Finpill, provider or data-access credentials |
 | Vercel Production | `production` | Production secrets in the API project's secret store |
@@ -38,7 +39,7 @@ Vercel's `development`, `preview` and `production` values (`VERCEL_ENV`) describ
 - Isolation between Preview and Production therefore rests primarily on the absence of those credentials.
 - The rejection applies to credentials and credential-requiring integrations only. Ordinary non-secret settings and Vercel system variables are allowed.
 
-**Local/CI rules:** tests use local or generated disposable resources only. No test, script or CI job may accept a Production database URL, project reference or Production credential.
+**Local/CI rules:** on 2026-09-25 the owner allowed Local to use the hosted Supabase project so that no container runtime is needed. Local access is user-scoped: every request carries a development Clerk token and RLS applies; the privileged key is rejected with a hosted URL. Test accounts and their rows in the hosted project must be removed before real Production use (see [TASK_STATUS.md](TASK_STATUS.md)). CI and automated database tests still use disposable local resources only and reject a hosted database URL, project reference or Production credential.
 
 ### Enforcement
 
@@ -48,8 +49,8 @@ The contract lives in `packages/contracts/src/environment.ts` and is applied by 
 - **Preview** (`VERCEL=1`, `VERCEL_ENV=preview`) must have no application environment. The client build, API build and API startup reject enabled integration switches and credential-shaped names: `CLERK_*`, `NEXT_PUBLIC_CLERK_*`, `SUPABASE_*`, `KAP_*`, `DATABASE_URL`, `POSTGRES_*`, `PG*` connection settings, and any name containing `SECRET`, `TOKEN`, `PASSWORD`, `PRIVATE_KEY`, `API_KEY` or `CREDENTIAL(S)` as a word. Vercel system variables are exempt. Errors list names only.
 - **Vercel Production** binds to `production` and **Vercel Development** to `local`. The API requires `APP_ENV` explicitly; the client derives it. Cross-binding or an unknown deployment context fails.
 - **Production auth:** with `AUTH_ENABLED=false` no Clerk setting is required. Supplied or enabled Clerk settings must be live (`sk_live_`/`pk_live_`), and any `*.clerk.accounts.dev` (development-instance) issuer is rejected. No specific instance, project or issuer identity is hard-coded.
-- **Local** rejects a hosted `SUPABASE_URL`: the only hosted project is Production.
-- **CI:** a process with `CI` set (outside Vercel builds) may validate a Production configuration only with every integration disabled. The workflow receives no repository secrets or variables (`tests/ci-isolation.test.mjs`), and database tests accept only a local Docker socket with a stripped environment (`tests/database-safety.test.mjs`).
+- **Local** accepts a hosted `SUPABASE_URL` only with `PRIVILEGED_DATA_ENABLED=false`. The iOS WebView origin `capacitor://localhost` is accepted in `CLIENT_ORIGINS` only in Local; hosted environments require HTTPS origins outside local networks.
+- **CI:** a process with `CI` set (outside Vercel builds) rejects a hosted `SUPABASE_URL` and may validate a Production configuration only with every integration disabled. The workflow receives no repository secrets or variables (`tests/ci-isolation.test.mjs`), and database tests accept only a local Docker socket with a stripped environment (`tests/database-safety.test.mjs`).
 
 ## Local setup
 

@@ -9,7 +9,7 @@ The bridge initializes Clerk from the public build-time publishable key after th
 1. In the development Clerk instance, enable Native API and register Android package `com.cuneytbozok.finpill` and the local signing certificate fingerprint as required by the instance. Keep Invite-only access enabled. Production registration and callback/deep-link configuration remain later foundation work.
 2. Set ignored `apps/client/.env.local` values as described in [WEB_AUTH.md](WEB_AUTH.md), including `NEXT_PUBLIC_AUTH_ENABLED=true` and the development publishable key. Never commit this file.
 3. Use JDK 21 and Android SDK platform 36. Run `npm run native:sync`, then build from `apps/client/android` with `./gradlew :app:assembleRelease -PfinpillLocalSigning`. The local signing flag uses Android's development keystore for private installation; it is not a distribution signing decision.
-4. Install `app/build/outputs/apk/release/app-release.apk` on an emulator or owned device. The native sign-in sheet should show the configured development instance. The protected API bearer acceptance belongs to task 01.10.
+4. Install `app/build/outputs/apk/release/app-release.apk` on an emulator or owned device. The native sign-in sheet should show the configured development instance. For the protected Local API, install a **debug** build instead and run `adb reverse tcp:3001 tcp:3001`: only the debug source set (`app/src/debug/`) permits cleartext HTTP, and only to `localhost`. Release builds never include it. Native bearer acceptance is described in [USER_DATA_AUTH.md](USER_DATA_AUTH.md).
 
 ## Live acceptance
 

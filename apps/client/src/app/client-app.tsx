@@ -23,6 +23,7 @@ import { createClientApi } from "@/runtime/api";
 import { createBrowserPlatform } from "@/runtime/browser-platform";
 import { resolveDeepLink } from "@/runtime/deep-links";
 
+import { AccountPanel } from "./account-panel";
 import { EmptyState, ErrorState } from "./ui-primitives";
 import {
   getThemePreference,
@@ -31,7 +32,7 @@ import {
 } from "./theme-preference";
 import { isNavigationCurrent, navigationItems, resolveTheme } from "./ui-model";
 
-import type { AppRoute, AuthPort } from "@finpill/contracts";
+import type { ApiTransport, AppRoute, AuthPort } from "@finpill/contracts";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
 import type { ThemePreference } from "./ui-model";
 
@@ -154,9 +155,11 @@ function SearchPage({
 function RouteContent({
   route,
   searchPageRef,
+  account,
 }: {
   route: AppRoute;
   searchPageRef: React.RefObject<HTMLInputElement | null>;
+  account?: ReactNode;
 }) {
   if (route.kind === "not-found") {
     return (
@@ -172,6 +175,18 @@ function RouteContent({
   }
   if (route.kind === "search" || route.kind === "ai")
     return <SearchPage inputRef={searchPageRef} />;
+  if (route.kind === "settings" && account)
+    return (
+      <main className="content" id="main-content">
+        <div className="page-heading">
+          <div>
+            <p className="eyebrow">Finpill</p>
+            <h1>{routeTitle(route)}</h1>
+          </div>
+        </div>
+        {account}
+      </main>
+    );
   const isCompany = route.kind === "company";
   return (
     <main className="content" id="main-content">
@@ -218,10 +233,12 @@ function RouteContent({
 
 function AppShell({
   auth,
+  account,
   accountControl,
   sessionNotice,
 }: {
   auth?: AuthPort;
+  account?: ReactNode;
   accountControl?: ReactNode;
   sessionNotice?: ReactNode;
 }) {
@@ -418,7 +435,11 @@ function AppShell({
           {sessionNotice}
         </div>
       )}
-      <RouteContent route={route} searchPageRef={searchPageRef} />
+      <RouteContent
+        account={account}
+        route={route}
+        searchPageRef={searchPageRef}
+      />
       <nav aria-label="Mobil ana navigasyon" className="mobile-nav">
         <Navigation route={route} />
       </nav>
@@ -426,23 +447,24 @@ function AppShell({
   );
 }
 
-function WebAuthApp() {
-  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+/** Confirms with the protected API that the token belongs to `userId`. */
+function useSessionVerification(
+  api: ApiTransport | undefined,
+  userId: string | null,
+) {
   const [verification, setVerification] = useState<{
     userId: string;
     status: "verified" | "error";
   } | null>(null);
-  const auth = useMemo<AuthPort>(
-    () => ({ getAccessToken: () => getToken() }),
-    [getToken],
-  );
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !userId) return;
-    const api = createClientApi(createBrowserPlatform(window, auth));
-    if (!api) return;
+    if (!api || !userId) return;
     let active = true;
     void api
-      .request({ path: "/api/v1/session", response: SessionResponseSchema })
+      .request({
+        path: "/api/v1/session",
+        response: SessionResponseSchema,
+        init: { cache: "no-store" },
+      })
       .then(({ userId: verifiedUserId }) => {
         if (active)
           setVerification({
@@ -456,14 +478,26 @@ function WebAuthApp() {
     return () => {
       active = false;
     };
-  }, [auth, isLoaded, isSignedIn, userId]);
+  }, [api, userId]);
+  return verification?.userId === userId
+    ? verification?.status === "verified"
+      ? "Oturum doğrulandı"
+      : "Oturum doğrulanamadı"
+    : "Oturum doğrulanıyor";
+}
 
-  const sessionStatus =
-    verification?.userId === userId
-      ? verification?.status === "verified"
-        ? "Oturum doğrulandı"
-        : "Oturum doğrulanamadı"
-      : "Oturum doğrulanıyor";
+function WebAuthApp() {
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  const auth = useMemo<AuthPort>(
+    () => ({ getAccessToken: () => getToken() }),
+    [getToken],
+  );
+  const api = useMemo(
+    () => createClientApi(createBrowserPlatform(window, auth)),
+    [auth],
+  );
+  const currentUserId = isLoaded && isSignedIn && userId ? userId : null;
+  const sessionStatus = useSessionVerification(api, currentUserId);
   const accountControl = (
     <div className="account-control">
       {!isLoaded && <span role="status">Oturum yükleniyor</span>}
@@ -484,7 +518,21 @@ function WebAuthApp() {
       )}
     </div>
   );
-  return <AppShell auth={auth} accountControl={accountControl} />;
+  return (
+    <AppShell
+      account={
+        isLoaded && (
+          <AccountPanel
+            api={api}
+            key={currentUserId ?? "signed-out"}
+            userId={currentUserId}
+          />
+        )
+      }
+      auth={auth}
+      accountControl={accountControl}
+    />
+  );
 }
 
 function NativeAuthApp({ clerk }: { clerk: NativeClerk }) {
@@ -497,6 +545,15 @@ function NativeAuthApp({ clerk }: { clerk: NativeClerk }) {
   const auth = useMemo<AuthPort>(
     () => ({ getAccessToken: clerk.getAccessToken }),
     [clerk],
+  );
+  const api = useMemo(
+    () => createClientApi(createBrowserPlatform(window, auth)),
+    [auth],
+  );
+  const currentUserId = loaded && !error ? userId : null;
+  const apiStatus = useSessionVerification(
+    api,
+    tokenStatus === "ready" ? currentUserId : null,
   );
 
   useEffect(() => {
@@ -597,13 +654,24 @@ function NativeAuthApp({ clerk }: { clerk: NativeClerk }) {
   );
   const sessionNotice = userId
     ? tokenStatus === "ready"
-      ? "Oturum hazır"
+      ? api
+        ? apiStatus
+        : "Oturum hazır"
       : tokenStatus === "error"
         ? "Oturum yenilenemedi"
         : "Oturum doğrulanıyor"
     : undefined;
   return (
     <AppShell
+      account={
+        loaded && (
+          <AccountPanel
+            api={api}
+            key={currentUserId ?? "signed-out"}
+            userId={currentUserId}
+          />
+        )
+      }
       auth={auth}
       accountControl={accountControl}
       sessionNotice={sessionNotice}
