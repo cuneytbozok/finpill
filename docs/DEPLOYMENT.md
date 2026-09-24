@@ -38,7 +38,7 @@ Native clients use `/api/v1` through the shared transport. Keep v1 compatible wi
 
 There is one release profile, `production`. It targets the Production application. Its name describes the target, not a Vercel context. Local native builds for task 01.10 are separate and never use this profile.
 
-Requirements: macOS with Xcode, the pinned Node/npm toolchain, JDK 21 and Android SDK 36; a committed, clean working tree; and no `apps/client/.env*` file other than `.env.example`.
+Requirements: macOS with Xcode, the pinned Node/npm toolchain, a JDK (21 documented; the Android Studio bundled JDK 25 also worked on 2026-09-24) with `JAVA_HOME` set, and Android SDK 36 via `ANDROID_HOME`; a committed, clean working tree; and no `apps/client/.env*` file other than `.env.example`.
 
 ```sh
 FINPILL_API_ORIGIN=https://<production-api-host> npm run native:release -- production
