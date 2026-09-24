@@ -1,6 +1,6 @@
 # A03 — Environments and releases
 
-- Status: **Draft, not accepted.** The decision is approved by the owner; implementation evidence is pending in tasks 01.09 and 01.10.
+- Status: **Accepted 2026-09-25** by the project owner, on the evidence of tasks 01.09 (PR #23 and its closeout) and 01.10 (PR #26). The owner notes that rule 3's Local use of the hosted database is temporary: revisit it when hosted live sign-in is enabled or real data arrives.
 - Revised: 2026-09-25 (Local may use the hosted database, user-scoped only) and 2026-09-24 (owner decisions). Originally proposed: 2026-09-22 (task 00.04).
 - Owner: project owner for environment identities and access; the implementing task for configuration contracts.
 
