@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.01 | in_progress — branch `codex/02.01-kap-fixture-evidence`, awaiting owner review |
+| 02.01 | in_progress — PR #27, awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -66,4 +66,4 @@ Every task not listed below is `pending` on its roadmap dependencies.
 
 | Task | State |
 |---|---|
-| 02.01 | in_progress — evidence pack in review (development-data gaps recorded above) |
+| 02.01 | in_progress — PR #27 (development-data gaps recorded above) |
