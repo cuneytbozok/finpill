@@ -68,12 +68,15 @@ client and native artifacts for server secrets, and prove Preview credentials
 cannot access pilot resources. The Vercel connector lacks access to the
 owner's team, but authenticated Chrome can inspect project settings. The
 separate API project is `finpill-api` (`prj_RPrp1YttJigzDOBXIUI3cYGbBjJb`).
-Its Preview currently has only non-secret `APP_ENV` and `CLIENT_ORIGINS`
-configured. The task-branch API Preview is Ready, but Vercel Authentication
-redirects unauthenticated health requests to SSO. Its exact Preview domain is
-recorded in the access register. Native/API acceptance remains blocked until
-the owner explicitly approves exempting that exact domain from Vercel
-Authentication. Automatic approval review rejected the exception while the
-owner had delegated the technical choice, so the setting remains enabled.
-Pilot resources are also unconfirmed. Do not mark hosted checks passed from
-local builds or a Ready deployment badge.
+Its task-branch Preview has only non-secret `APP_ENV=staging` and exact
+`CLIENT_ORIGINS` configured. The owner explicitly approved removing Vercel
+Authentication for the exact task-branch API Preview domain recorded in the
+access register; Production protection remains enabled. Public deployed health
+now returns API v1, allowed-origin preflight returns `204`, disallowed-origin
+preflight returns `403`, and a session request without a bearer returns `401`.
+The task-branch client Preview has branch-scoped `NEXT_PUBLIC_API_ENABLED=true`
+and the exact API Preview origin, effective after its next deployment; hosted
+auth remains disabled. The native staging profile successfully consumed that
+live API v1 and built both unsigned Release targets. Pilot resources and a
+positive hosted signed-bearer flow remain unconfirmed. Do not treat these
+checks as proof of Preview-to-pilot isolation or integrated authentication.
