@@ -2,7 +2,7 @@
 
 **Baseline:** Original [PROJECT_BLUEPRINT.md](PROJECT_BLUEPRINT.md) v0.3; current v0.4 applies BC-18 only.
 **Authority:** Approved [MVP execution plan](MVP_EXECUTION_PLAN.md), section 8.  
-**Status:** BC-01–BC-17 remain recorded and unapplied. BC-18 is applied to blueprint v0.4 in this documentation revision; integration is tracked in TASK_STATUS.md.
+**Status:** BC-01–BC-17 and BC-19 remain recorded and unapplied. BC-18 is applied to blueprint v0.4; integration is tracked in TASK_STATUS.md.
 
 This register identifies required documentation reconciliation. It does not claim that architecture gates have passed or that the associated implementation exists. The blueprint remains unchanged during task 00.01. The approved roadmap already governs execution order and the explicit product-owner choices; its acceptance does not approve an unevidenced implementation ADR.
 
@@ -35,6 +35,7 @@ The owner is the implementer of the listed task, not an assumed service-account 
 | BC-16 | §43–45 | define measurable performance/recovery targets, source-specific freshness, native/API release compatibility and required operational acceptance. | 01.09, 02.05, 10.03, 10.04, 10.06, 10.07 | A03, A07, A08 | recorded |
 | BC-17 | §48 | distinguish permitted private-pilot use from public redistribution/store/billing release gates. | 00.06, 02.08, 10.07 | Product-owner release boundary; A10 | recorded |
 | BC-18 | §22–23, §28.1, §28.5 | Three primary destinations, persistent search without a tab, four company tabs with contextual saved analysis/Q&A, legacy `/ai` compatibility, explicit periods/comparison bases, independent freshness and validated takeaway sources. Preserve company Q&A; no unrestricted user regeneration. | 01.07–01.08, 07.01, 07.05–07.06, 07.08, 09.02–09.04, 09.06 | Product-owner approval on 2026-09-23; blueprint v0.4; branch `codex/docs-research-navigation` and documentation PR recorded in TASK_STATUS.md. No architecture gate accepted. | applied |
+| BC-19 | §22.4, §23.18, §37, §44 | Keep canonical web and in-app company routes in MVP while deferring OS-verified HTTPS Universal/App Link opening, final link domain and paid Apple signing until after MVP. Do not treat the unperformed native association checks as passed. | 01.07 closeout, 01.10, post-MVP links | Product-owner acceptance and deferral on 2026-09-24; merged PR #21; roadmap gate correction recorded in TASK_STATUS.md. No A01–A03 gate accepted. | recorded |
 
 ### BC-18 application boundary
 
