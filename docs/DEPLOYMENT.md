@@ -72,6 +72,8 @@ Its Preview currently has only non-secret `APP_ENV` and `CLIENT_ORIGINS`
 configured. The task-branch API Preview is Ready, but Vercel Authentication
 redirects unauthenticated health requests to SSO. Its exact Preview domain is
 recorded in the access register. Native/API acceptance remains blocked until
-the owner decides whether that domain should be exempted from Vercel
-Authentication. Pilot resources are also unconfirmed. Do not mark those hosted
-checks passed from local builds or a Ready deployment badge.
+the owner explicitly approves exempting that exact domain from Vercel
+Authentication. Automatic approval review rejected the exception while the
+owner had delegated the technical choice, so the setting remains enabled.
+Pilot resources are also unconfirmed. Do not mark hosted checks passed from
+local builds or a Ready deployment badge.
