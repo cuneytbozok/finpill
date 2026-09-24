@@ -1,19 +1,18 @@
-## Task and behavior
+## Task
 
-Task ID:
+Task ID and roadmap link:
 
-Describe the problem and resulting behavior. Link the roadmap task and relevant ADRs.
+What changed and the resulting behavior:
 
-## Acceptance evidence
+## Verification
 
-- Checks run and results:
-- Required checks not run and why:
-- Migration, contract, source-lineage or methodology changes:
-- Operational/release impact and remaining blockers:
+- Tier 1 (format, lint, typecheck, affected tests):
+- Tier 2 (migrations/RLS, parser/golden, metrics, API, environment/security), if relevant:
+- Tier 3 (deployed/native/release), if triggered:
+- Required checks not run, and why:
 
-## Handoff
+## Contracts and follow-up
 
-- Task-status/ADR updates:
-- Newly ready tasks after merge:
-
-Keep this PR within the selected task. Do not mark architecture gates accepted without their required evidence.
+- Migrations, API/DTO contracts, lineage or methodology changes:
+- Exceptions, blockers and owner actions still needed:
+- `docs/TASK_STATUS.md` row updated:

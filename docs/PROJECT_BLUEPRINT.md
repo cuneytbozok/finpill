@@ -1,8 +1,9 @@
 # BIST Fundamental Intelligence Platform
 ## Project Blueprint / Technical Product Specification
 
-**Version:** 0.4
-**Status:** Product + architecture baseline; v0.4 applies only the approved research-navigation revision (BC-18). Other registered corrections and architecture gates remain outstanding.
+**Version:** 0.5 (2026-09-24)
+**Status:** Current approved product and architecture baseline. v0.5 applies the approved blueprint corrections BC-01–BC-15, BC-17, BC-19 and BC-20, plus the environment/release part of BC-16; BC-18 was applied in v0.4. See the [correction register](BLUEPRINT_CORRECTIONS.md). The applied corrections document approved direction and invariants. They do not claim implementation, and they do not accept any architecture decision record (ADR). Concrete schemas, algorithms and methodologies stay with the roadmap tasks and ADRs that own them.
+**Document roles:** this blueprint owns architecture and invariants; [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md) owns task scope, order and acceptance; [AGENTS.md](../AGENTS.md) owns the development workflow.
 **Primary market:** Borsa İstanbul (BIST)  
 **Primary data source:** KAP / MKK API  
 **Product direction:** Fundamental-first equity intelligence platform with AI-assisted interpretation. Technical analysis is a later phase.
@@ -93,6 +94,7 @@ KAP financial responses contain actual period contexts such as instant dates for
 - standardized core metrics
 - quarterly / cumulative / TTM handling
 - historical trend charts
+- end-of-day (EOD) valuation metrics (market capitalization, EV, P/E, P/B, EV/EBITDA where applicable) using historical prices, share counts and point-in-time financials
 - KAP disclosure timeline
 - AI disclosure classification
 - AI company-change summary
@@ -121,6 +123,8 @@ KAP financial responses contain actual period contexts such as instant dates for
 - separate Python microservice unless required
 - separate vector database service
 
+Later phases, not MVP: returns metrics (ROE/ROA/ROIC, §14), product scoring (§36), push notifications (§22.12) and technical analysis. The MVP architecture must not preclude them.
+
 ---
 
 # 4. Recommended Technology Stack
@@ -137,11 +141,11 @@ KAP financial responses contain actual period contexts such as instant dates for
 
 - Capacitor
 
-The same web application should be deployable as browser application, iOS native shell and Android native shell.
+One statically exported Next.js client is shared by the browser, iOS and Android. Capacitor bundles its compiled assets. There is no remote `server.url`, no embedded Next.js server and no server secret in native assets. Server features run in a **separately deployed Next.js API**, which clients call through a versioned `/api/v1` contract. Native authentication uses narrow adapters over the official Clerk iOS/Android SDKs behind a shared `AuthPort`.
 
 ## Hosting
 
-- Vercel
+- Vercel: two projects from one repository. The static client project and the separate API project deploy and version independently.
 
 ## Database
 
@@ -238,6 +242,8 @@ Generation models should be configurable through environment variables. The embe
                     │ Web + Capacitor App │
                     └─────────────────────┘
 ```
+
+The "Next.js API / App" box is the **separate API deployment**. The client is a static export shared by web and Capacitor and holds no secrets or privileged database access. Ingestion and processing run as bounded, authenticated API job handlers dispatched by Supabase Cron. PostgreSQL owns job claims, leases, checkpoints and deduplication (§12.19, §28).
 
 ---
 
@@ -540,9 +546,49 @@ Q4 standalone = FY cumulative - 9M cumulative
 
 All calculated standalone periods must store calculation lineage.
 
+Derive a standalone quarter only from **compatible** inputs. Compatible means the same issuer and reporting scope (consolidated/standalone), fiscal year, accounting and TMS 29 basis, and a selected filing/restatement version valid as of the calculation date. Incompatible or missing inputs produce an explicit "unavailable" result with a reason; they are never guessed. The concrete compatibility and selection rules are owned by A07/A09 and roadmap tasks 02.05 and 05.02.
+
 ---
 
 # 12. Database Design
+
+## 12.0 Status of this schema sketch (v0.5)
+
+The table lists in §12.1–12.19 are the original illustrative sketch, **not an approved schema**. Concrete tables, keys and columns are defined by the owning roadmap tasks' migrations and ADRs. The approved invariants below override any conflicting detail in the sketch:
+
+- **Identity and authorization (BC-03, A02):**
+  - User identity is the Clerk subject, stored as text.
+  - User-owned rows are protected by Supabase RLS using the verified Clerk token through Supabase third-party authentication.
+  - Private-pilot eligibility is an operator-managed allowlist.
+  - User, operator/admin and machine (job) authorities are separate. User requests never use service-role authority.
+- **Issuer vs security identity (BC-04, A04):**
+  - Issuers (KAP members) and tradable securities are distinct entities with stable internal IDs.
+  - Tickers, ISINs and KAP identifiers are effective-dated mappings, not primary keys.
+  - Prices and share counts attach to securities.
+- **Immutable sources (BC-05, A05):**
+  - A logical disclosure is separate from its source revisions and acquisition observations.
+  - Each exact payload representation/subreport is stored immutably with hashes.
+  - Nothing overwrites a prior revision.
+- **Financial identity and publication (BC-06, A05/A07):**
+  - Facts carry explicit context, reporting scope, source revision and parser-build identity.
+  - Comparative restatements are selectable by policy and as-of date.
+  - Replacements are published atomically through current-version pointers.
+  - Partially processed builds are never published.
+- **Exact numbers (BC-08, A06):**
+  - Source numbers are parsed losslessly and stored as PostgreSQL `numeric`.
+  - Calculations use a decimal library.
+  - Authoritative amounts cross transport boundaries as decimal strings.
+  - Rounding happens only in presentation. Chart-only approximations are labeled as such.
+- **Recoverable execution (BC-09, A08):**
+  - Jobs support atomic claiming, leases with fencing, retries with recorded failures, transactional checkpoints, source-wide rate budgets and version-aware idempotency keys.
+  - Execution is at-least-once, so handlers must be idempotent.
+- **Market data (BC-11, A10):**
+  - Historical share counts and corporate actions carry provenance.
+  - Valuations join financials and prices as of their publication/availability time, never with look-ahead.
+- **AI records (BC-12, A11/A12):**
+  - AI generations are persisted with model, prompt and schema versions and their evidence.
+  - Conversations are user-owned.
+  - Embeddings record model, dimensions and text/chunk versions, with an explicit re-embedding cutover.
 
 ## 12.1 companies
 
@@ -558,7 +604,7 @@ created_at
 updated_at
 ```
 
-Unique: `kap_company_id`, `stock_code`.
+Unique: `kap_company_id`, `stock_code`. (v0.5: `stock_code` is an effective-dated security mapping, not a stable issuer key; see §12.0.)
 
 ## 12.2 securities
 
@@ -614,7 +660,7 @@ detail_fetched_at
 ingested_at
 ```
 
-Unique: `disclosure_index`.
+Unique: `disclosure_index`. (v0.5: a single mutable `raw_payload` per disclosure is superseded by immutable source revisions and acquisition observations; see §12.0.)
 
 ## 12.5 kap_disclosure_attachments
 
@@ -786,6 +832,8 @@ volume
 source
 ```
 
+(v0.5: prices attach to a security, not a company, and keep source observation and availability timestamps; see §12.0.)
+
 MVP may begin with end-of-day data. Real-time BIST redistribution must not be implemented until licensing/data-provider requirements are resolved.
 
 ## 12.14 valuation_metrics
@@ -881,7 +929,7 @@ watchlist_companies
 user_preferences
 ```
 
-Use Clerk user ID as external identity.
+Use the Clerk user ID (text subject) as the external identity and as the owner key for RLS. A `pilot_eligibility` allowlist gates private-pilot access. See §12.0 and §32.
 
 ---
 
@@ -926,7 +974,7 @@ financial_report_parse:1230809:parser_v1
 analysis_snapshot:1619:2026-06-30:analysis_v1
 ```
 
-This prevents duplicate cron runs or retries from repeating expensive work or AI calls.
+This prevents duplicate cron runs or retries from repeating expensive work or AI calls. Claims, leases, fencing and checkpoint rules (§12.0) make at-least-once execution safe.
 
 ---
 
@@ -1080,7 +1128,7 @@ Finalize after cross-company validation.
 
 # 17. Valuation Metrics
 
-Requires price/share-count data.
+Requires price/share-count data. Valuation is part of the MVP and is based on EOD prices. Each valuation uses the security's historical share count and corporate-action-adjusted inputs, and only the financials published by that date. Any price or share-count gap yields an explicit "unavailable" result. The formulas and provider semantics are finalized under A10 (roadmap phase 06).
 
 ## Market capitalization
 
@@ -1124,7 +1172,7 @@ All valuation methodology must be versioned.
 
 # 18. Restatements / TMS 29
 
-Financial statements may be restated.
+Financial statements may be restated. Comparisons across different accounting, TMS 29 or restatement bases are rejected unless an approved compatibility rule exists. The system never silently adjusts or mixes bases (see §11 and A07).
 
 The system must distinguish:
 
@@ -1151,6 +1199,8 @@ Latest restated
 ---
 
 # 19. Disclosure Event Processing
+
+Numeric values in examples throughout this document are illustrative. Authoritative amounts are stored as `numeric` and transported as decimal strings (§12.0).
 
 Non-financial KAP disclosures should be ingested and then classified by AI.
 
@@ -1223,6 +1273,8 @@ Do not treat correlation as causation unless supported by company disclosure.
 ---
 
 # 21. AI Architecture
+
+Every AI output is a persisted, versioned generation record: model, prompt and schema version, evidence references and status. Numeric claims must be grounded in deterministic data. Retrieval quality is evaluated before AI outputs are shown, and changing the embedding model requires a versioned re-embedding cutover (§12.0, §47, A11/A12).
 
 ## 21.1 Generation
 
@@ -1362,6 +1414,8 @@ Optional nested URLs for sharable state:
 ```
 
 Do not encode ephemeral UI state in the URL unless it is useful for refresh, navigation or sharing.
+
+These canonical URLs are resolved by a client-side route registry inside the static client, so tickers are not enumerated at build time. The web host falls back to the entry asset. Native shells map incoming canonical URLs to the same routes through a shared navigation adapter that validates origin and route and rejects untrusted hosts. Opening the app from an OS-verified HTTPS Universal/App Link needs an owned link domain and paid Apple signing. It is **post-MVP** (BC-19). Canonical web routes, in-app navigation, sign-in return and browser/Android Back remain MVP requirements.
 
 ## 22.5 Global app shell
 
@@ -2169,7 +2223,7 @@ Before roadmap task 07.08 is complete (with AI-specific flows verified in 09.04/
 - desktop sidebar and mobile navigation represent the same destinations
 - company tab state is obvious
 - global search can reach any supported company
-- deep links to company tabs work
+- web and in-app deep links to company tabs work (OS-verified native link opening is post-MVP)
 - source drawer is reachable from displayed financial values
 - loading/empty/error/stale states exist for core surfaces
 
@@ -2177,62 +2231,46 @@ Before roadmap task 07.08 is complete (with AI-specific flows verified in 09.04/
 
 # 24. Internal API Design
 
-Suggested Next.js route structure:
+The API is a separate Next.js deployment. All client routes are versioned under `/api/v1`. Existing routes are `/api/v1/health` (reports `apiVersion`), `/api/v1/session` and `/api/v1/profile`. Installed native clients depend on v1. Introduce a new version before removing or changing a v1 contract. Protected routes verify the Clerk bearer token (signature, expiry, issuer, authorized party) and apply exact-origin CORS.
+
+Suggested product routes (final names are set by their roadmap tasks):
 
 ```text
-/api/companies
-/api/companies/[ticker]
-/api/companies/[ticker]/financials
-/api/companies/[ticker]/metrics
-/api/companies/[ticker]/valuation
-/api/companies/[ticker]/disclosures
-/api/companies/[ticker]/analysis
-/api/companies/[ticker]/chat
+/api/v1/companies
+/api/v1/companies/[ticker]
+/api/v1/companies/[ticker]/financials
+/api/v1/companies/[ticker]/metrics
+/api/v1/companies/[ticker]/valuation
+/api/v1/companies/[ticker]/disclosures
+/api/v1/companies/[ticker]/analysis
+/api/v1/companies/[ticker]/chat
 
 /api/internal/kap/sync
 /api/internal/kap/reprocess
 ```
 
-Internal ingestion routes must be protected. Prefer domain services over putting business logic directly in route handlers.
+Internal ingestion routes must be protected by machine or operator authority, separate from user tokens. Prefer domain services over putting business logic directly in route handlers.
 
 ---
 
-# 25. Suggested Repository Structure
+# 25. Repository Structure
 
 ```text
 /
-├── app/
-│   ├── (public)/
-│   ├── (app)/
-│   └── api/
-├── components/
-├── src/
-│   ├── domain/
-│   │   ├── companies/
-│   │   ├── financials/
-│   │   ├── metrics/
-│   │   ├── disclosures/
-│   │   └── valuation/
-│   ├── integrations/
-│   │   ├── kap/
-│   │   ├── market-data/
-│   │   └── ai/
-│   ├── ingestion/
-│   │   ├── kap/
-│   │   └── financials/
-│   ├── db/
-│   ├── ai/
-│   ├── auth/
-│   └── utils/
+├── apps/
+│   ├── client/          # static Next.js export shared by web and Capacitor (ios/, android/)
+│   └── api/             # separate Next.js API deployment (domain services, integrations, jobs)
+├── packages/
+│   └── contracts/       # shared environment, route, transport and auth contracts
 ├── supabase/
-│   └── migrations/
-├── tests/
-│   ├── fixtures/
-│   ├── unit/
-│   └── integration/
-├── docs/
-└── capacitor.config.ts
+│   ├── migrations/
+│   └── tests/           # pgTAP
+├── tests/               # Vitest unit/contract tests
+├── tools/               # build, environment, database and native-asset checks
+└── docs/
 ```
+
+Domain modules (companies, financials, metrics, disclosures, valuation), integrations (KAP, market data, AI) and ingestion live under `apps/api` as server-only code. The client never imports them.
 
 ---
 
@@ -2342,6 +2380,8 @@ compare with kap_sync_state.last_seen_disclosure_index
 ```
 
 If nothing changed, the run ends after the inexpensive cursor check.
+
+An unchanged index is not by itself proof that no earlier disclosure was corrected. Use the correction mechanism verified against KAP (roadmap 03.01/03.05), or a bounded periodic reconciliation, to detect same-index changes. Do not assume either behavior without evidence.
 
 The polling interval must be configurable and must respect the active KAP API plan/rate limit.
 
@@ -2723,6 +2763,11 @@ Do not convert API errors into empty datasets silently.
 - secrets stored in Vercel/Supabase secret management
 - redact credentials from application logs
 - rotate any credentials exposed during development/testing
+- user, operator/admin and machine authorities are separate; user requests never use service-role authority
+- private-pilot access requires an invited Clerk account plus an enabled eligibility row
+- Vercel Preview deployments carry no Finpill, provider or data-access credentials
+- Local and CI tests never target Production resources or use Production credentials
+- browser bundles and native artifacts are scanned for server-secret patterns; only allowlisted public settings reach the client
 
 ---
 
@@ -2846,256 +2891,25 @@ Every dimension must disclose inputs, formula, version and historical context. A
 
 # 37. Phase Plan
 
-## Phase 0 — Repository bootstrap
-
-Deliverables:
-
-- Next.js project
-- TypeScript
-- Tailwind
-- shadcn/ui
-- Supabase
-- Clerk
-- Vercel
-- Capacitor skeleton
-- environment schema
-- linting / formatting / tests
-
-Exit criteria:
-
-```text
-Web app runs
-Auth works
-Database connection works
-CI passes
-```
-
-## Phase 1 — KAP client
-
-Deliverables:
-
-- KAP auth adapter
-- `/members`
-- `/memberSecurities`
-- `/lastDisclosureIndex`
-- `/disclosures`
-- `/disclosureDetail`
-- Zod schemas
-- retry/rate-limit handling
-
-Exit criteria:
-
-```text
-Can fetch and persist companies
-Can fetch disclosure list
-Can fetch FR detail
-```
-
-## Phase 2 — Financial parser
-
-Deliverables:
-
-- Context parser
-- recursive ReportItem parser
-- normalized fact extraction
-- statement detection
-- taxonomy labels
-- raw financial fact persistence
-
-Exit criteria:
-
-For the validated TSPOR fixture the system correctly extracts at minimum:
-
-```text
-Revenue
-Gross Profit
-Net Profit
-Cash
-Current Assets
-Non-current Assets
-Total Assets
-Current Borrowings
-Long-term Borrowings
-Equity
-Operating Cash Flow
-Depreciation & Amortisation
-```
-
-## Phase 3 — Metric engine
-
-Deliverables:
-
-- standardized metric mapping
-- standalone quarter logic
-- YoY / QoQ
-- margins
-- TTM
-- net debt v1
-- EBITDA v1
-- lineage
-
-Exit criteria: golden tests pass for several companies.
-
-## Phase 4 — Product shell + Company UI
-
-Deliverables:
-
-- design tokens and theme foundation
-- responsive app shell
-- mobile bottom navigation
-- desktop sidebar
-- global search
-- watchlist UI
-- company header and local tabs
-- financial snapshot
-- historical tables
-- charts
-- ratios page
-- metric/source drill-down
-- freshness states
-- loading / empty / stale / error states
-
-Exit criteria: user can navigate the complete core information architecture, inspect a company without AI, understand its financial trend and trace important values to source.
-
-## Phase 5 — Disclosure intelligence
-
-Deliverables:
-
-- KAP timeline
-- AI event extraction
-- structured event storage
-- disclosure summaries
-
-Exit criteria: new non-FR disclosures become searchable structured events.
-
-## Phase 6 — AI company analysis
-
-Deliverables:
-
-- "What changed?"
-- company Q&A
-- structured metrics + RAG retrieval
-- historical analysis snapshots
-
-Exit criteria: AI explanations cite underlying company metrics/disclosures and do not invent numeric values.
-
-## Phase 7 — Market data / valuation
-
-Deliverables:
-
-- EOD price provider
-- market cap
-- historical valuation
-- P/E
-- P/B
-- EV/EBITDA
-
-Exit criteria: valuation metrics reproduce known reference calculations within defined methodology tolerance.
-
-## Phase 8 — Capacitor mobile release
-
-Deliverables:
-
-- iOS shell
-- Android shell
-- validate mobile bottom navigation and safe areas
-- native build configuration
-- deep-link routing for company/event URLs
-- mobile keyboard / sheet / scrolling validation
-
-Later: push notifications and app-store release process.
-
-## Phase 9 — Technical analysis
-
-Separate later module.
-
-Potential:
-
-```text
-Volume
-EMA 20/50/200
-RSI
-MACD
-ATR
-Bollinger Bands
-Volume Profile
-Support / resistance
-Gaps
-```
-
-Technical signals should describe conditions rather than automatically output trade commands.
+Superseded (BC-13). Execution order, dependencies and acceptance criteria are owned by [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md). The original phase list is preserved in Git history (blueprint v0.4). Technical analysis remains a later, separate module; it should describe conditions rather than output trade commands.
 
 ---
 
 # 38. First Development Milestone
 
-The first concrete engineering objective should be:
-
-> Given a KAP FR disclosure index, ingest its structured financial response and produce normalized financial facts in PostgreSQL.
-
-Input:
-
-```text
-1230809
-```
-
-Expected pipeline:
-
-```text
-KAP
-→ disclosureDetail
-→ Context parser
-→ ReportItem parser
-→ financial_facts
-```
-
-No UI and no AI are necessary for this milestone. This isolates the most important technical risk early.
+Superseded (BC-13). The original first milestone, KAP FR → normalized facts without UI or AI, is covered by roadmap phases 02–04.
 
 ---
 
 # 39. Initial Engineering Tickets
 
-1. Bootstrap Next.js + TypeScript project.
-2. Configure Supabase.
-3. Configure Clerk.
-4. Configure environment validation.
-5. Implement KAP Basic Auth client.
-6. Implement KAP members endpoint.
-7. Implement KAP disclosures endpoint.
-8. Implement KAP disclosure-detail endpoint.
-9. Add raw KAP response fixtures.
-10. Implement `arrayify`.
-11. Implement Context normalization.
-12. Implement recursive ReportItem traversal.
-13. Extract normalized financial facts.
-14. Create financial database migrations.
-15. Persist TSPOR fixture into test database.
-16. Add golden parser assertions.
-17. Implement taxonomy mapping v1.
-18. Implement metric engine skeleton.
-19. Implement revenue/gross-profit/net-profit metrics.
-20. Implement balance-sheet metrics.
-21. Implement cash-flow metrics.
-22. Implement EBITDA v1.
-23. Implement net debt v1.
-24. Add metric lineage.
-25. Add design tokens, typography and theme support.
-26. Build responsive app shell (mobile bottom nav + desktop sidebar).
-27. Build global company search.
-28. Build company header and local tabs.
-29. Build first company financials page.
-30. Build source/lineage drawer.
-31. Add loading/empty/error/stale states for core UI.
-32. Build watchlist page.
-33. Add end-to-end navigation tests.
-
-Do not start AI features before the deterministic financial pipeline and core source-traceable UI are stable.
+Superseded (BC-13) by the roadmap's task list.
 
 ---
 
 # 40. Coding-Agent Rules
 
-Cursor/Codex should be given these rules at project start:
+Coding agents follow [AGENTS.md](../AGENTS.md), which must preserve these invariants:
 
 ```text
 1. Never calculate financial metrics in React components.
@@ -3120,9 +2934,10 @@ Cursor/Codex should be given these rules at project start:
 20. Follow the documented navigation and route map; do not invent parallel screen structures.
 21. Preserve accessibility semantics and keyboard navigation on web.
 22. Every external data timestamp shown to a user must identify freshness accurately.
+23. Transport authoritative amounts as decimal strings; never as JSON numbers.
 ```
 
-For precise finance arithmetic in TypeScript, evaluate a decimal library such as `decimal.js` rather than relying on native `number`.
+`decimal.js` is the intended decimal library (A06); its use is finalized in roadmap task 02.04.
 
 ---
 
@@ -3145,6 +2960,8 @@ MVP is complete when a user can:
 13. navigate the complete product comfortably on mobile and desktop
 14. distinguish current, stale and unavailable data
 15. open source/lineage details for key financial values
+
+The above must work for invited private users on web, iOS and Android, against Production. Historical coverage must meet the 20-company × 12-quarter cohort (§42). The roadmap's §7 checklist is the objective acceptance list.
 
 And the engineering system can continuously sync KAP disclosures, parse new financial reports, version restatements, recalculate metrics, retain lineage and generate AI analysis snapshots without manual data entry.
 
@@ -3176,14 +2993,7 @@ Need a stable BIST/issuer sector mapping source.
 
 ## Historical ingestion depth
 
-Initial recommendation:
-
-```text
-20–50 companies
-12 quarters minimum
-```
-
-before attempting full-market backfill.
+Decided (owner, BC-14): **20 deliberately selected companies × 12 displayed quarters**, plus the predecessor inputs needed for the initial YoY/TTM and as-of valuation. The cohort deliberately covers materially different reporting structures; the selection is owned by roadmap task 02.01. It is a validation and initial-coverage boundary, not a platform limit: ingestion, identifiers and schemas stay full-market capable.
 
 ## AI model selection
 
@@ -3195,7 +3005,7 @@ Generation model is intentionally swappable through Vercel AI Gateway. Embedding
 
 ## 43.1 Performance
 
-Initial targets, measured on production-like builds:
+Measurable targets are still to be set (BC-16, still recorded). Roadmap task 10.06 sets them for the private stage, and formal targets become a public-release gate. Initial direction, measured on release builds:
 
 ```text
 Primary app shell should become interactive quickly on normal mobile networks.
@@ -3219,6 +3029,8 @@ embedding failure    → structured data still works
 attachment failure   → structured presentation data still works where available
 ```
 
+Installed native clients keep working across API deployments: the API stays backward-compatible within `/api/v1`, and public-setting changes require a rebuilt client. Backup/restore and lineage verification are exercised before the private-pilot release (roadmap 10.04). Formal recovery targets (RPO/RTO) are a public-release gate.
+
 ## 43.3 Data correctness
 
 Correctness is more important than freshness for financial statements.
@@ -3236,7 +3048,7 @@ Do not publish partially calculated metrics as if complete.
 
 ## 43.4 Accessibility
 
-Target WCAG 2.1 AA for primary web flows and preserve equivalent usability in Capacitor shells.
+Design toward WCAG 2.1 AA for primary web flows and preserve equivalent usability in Capacitor shells. The private MVP verifies baseline accessibility (keyboard, focus, contrast, screen-reader smoke checks, reduced motion). Formal AA conformance testing is a public-release gate.
 
 ## 43.5 Localization
 
@@ -3248,58 +3060,56 @@ Database/domain models should preserve English source labels and avoid Turkish-o
 
 # 44. Environments, Configuration & Deployment
 
-Use three logical environments:
+Owner decision 2026-09-24 (BC-20; draft [A03](adr/A03-environments-and-releases.md)). The how-to guide is [ENVIRONMENTS.md](ENVIRONMENTS.md).
+
+Two application/data environments:
 
 ```text
-local
-staging
-production
+local        development, automated tests, disposable databases, Clerk development instance
+production   the single hosted private application: Vercel Production, one hosted Supabase
+             project, Clerk live instance once hosted authentication is enabled
 ```
 
-Recommended separation:
+"Private pilot" is a usage/release mode of Production, not a separate environment.
+
+Vercel deployment contexts are not application environments:
 
 ```text
-separate Supabase projects for production vs non-production where practical
-separate Clerk instances/environments
-separate KAP credentials
-separate AI credentials/usage tracking
+development  → local
+preview      → no application environment (credential-free build context)
+production   → production
 ```
 
-Environment variables should be schema-validated at startup.
-
-Example groups:
+Rules:
 
 ```text
-APP_*
-DATABASE_*
-CLERK_*
-SUPABASE_*
-KAP_*
-AI_*
-MARKET_DATA_*
+Preview holds no Finpill, provider or data-access credentials and runs with those integrations disabled
+Local/CI tests never target Production resources or use Production credentials
+Production configuration fails closed; never fall back from production to development services
+Production auth is optional until enabled; when enabled it requires live Clerk keys and rejects development keys/issuer
+secrets live only in ignored local files, CI-scoped secrets or the hosting provider's secret store
+environment variables are schema-validated at build and startup; only allowlisted public settings reach the client
 ```
 
-Never silently fall back from production to development APIs.
+A dedicated hosted Staging environment is not required during this phase. Add one only when public release, multiple users, store distribution, significant operational risk or release-management needs justify it, and revise A03 when you do.
+
+Hosted Production authentication needs an owned domain and a Clerk live instance. It is deferred and tracked as an explicit prerequisite; until then integrated authentication is proven against Local.
 
 ## Deployment flow
 
 ```text
-feature branch
+task branch
 ↓
-PR
+PR: format + lint + typecheck + tests + disposable database replay (CI)
 ↓
-lint + typecheck + unit tests
+credential-free Vercel Preview (build, static UI, routing)
 ↓
-preview deployment
+owner review and merge to main
 ↓
-integration/e2e checks
-↓
-main
-↓
-production deploy
+Vercel Production deploy (client and API projects)
 ```
 
-Database migrations must be applied explicitly and must be backward-safe where practical.
+Database migrations are applied explicitly to Production, with owner approval, and must be backward-safe for the deployed API and installed clients.
 
 ---
 
@@ -3406,6 +3216,8 @@ Do not assume that because data is technically accessible it may be redistribute
 
 For a personal/private build, retain the same abstraction boundaries so a provider can be replaced later.
 
+Private-pilot use of KAP and market data still requires recorded evidence that the use is permitted (access register). Public launch, public redistribution, store publication and billing are separate release gates beyond the MVP (BC-17).
+
 ---
 
 # 49. Architecture Decision Records & Documentation Discipline
@@ -3438,62 +3250,16 @@ Status
 Date
 ```
 
-The blueprint defines the system direction; ADRs capture implementation decisions that become costly to reverse.
+The blueprint defines the current architecture; ADRs capture consequential decisions that become costly to reverse. Ordinary implementation needs no ADR. The active ADR set (A01–A12) and its gates are listed in the roadmap §2. An ADR is accepted only when its evidence exists, and a gate blocks only the work it names. When a decision changes architecture, update the blueprint in the same PR.
 
 ---
 
 # 50. Pre-Coding Readiness Checklist
 
-Before asking Cursor/Codex to implement a phase, verify the phase has:
-
-```text
-Goal
-Inputs
-Outputs
-Database changes
-Routes/API contracts
-UI states if applicable
-Error behavior
-Tests
-Exit criteria
-```
-
-Before starting Phase 0/1 specifically:
-
-- [ ] GitHub repository created
-- [ ] local Node/package-manager version chosen
-- [ ] Supabase project available
-- [ ] Clerk project available
-- [ ] Vercel project available
-- [ ] KAP dev credentials rotated if any were exposed during testing
-- [ ] KAP dev base URL configured server-side
-- [ ] validated FR fixture stored locally for tests
-- [ ] formatter and decimal-library choice documented
-- [ ] `.env.example` contains names only, never secrets
-- [ ] branch/PR convention chosen
-- [ ] CI command agreed (`lint`, `typecheck`, `test`)
-
-The coding agent should receive only the current phase and relevant blueprint sections, not a request to implement the entire system in one pass.
+Superseded (BC-13). Repository readiness was completed by roadmap phase 00. Per-task readiness is each task's roadmap row plus the prerequisites in the [access register](ACCESS_REGISTER.md).
 
 ---
 
 # 51. Recommended Next Step
 
-
-Start with **Phase 0 + Phase 1 only**, while establishing the design-system/app-shell foundations that later UI phases will reuse.
-
-The first Cursor/Codex coding session should not attempt to build the whole product.
-
-Target:
-
-```text
-Repository bootstrap
-+
-KAP client
-+
-validated TSPOR fixture
-```
-
-Then implement the parser in the next isolated milestone.
-
-This keeps each coding-agent session small, testable and reviewable.
+Superseded (BC-13). See [TASK_STATUS.md](TASK_STATUS.md) for the next actionable roadmap task.
