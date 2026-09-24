@@ -19,6 +19,8 @@ function isClerkDevelopmentIssuer(value: string) {
   }
 }
 
+export const IOS_WEBVIEW_ORIGIN = "capacitor://localhost";
+
 const secret = z
   .string()
   .min(1)
@@ -31,7 +33,10 @@ export const ServerEnvironmentSchema = z
     CLIENT_ORIGINS: z
       .string()
       .transform((value) => value.split(","))
-      .pipe(z.array(OriginSchema).min(1)),
+      // The iOS Capacitor WebView's fixed origin; only Local accepts it below.
+      .pipe(
+        z.array(z.union([OriginSchema, z.literal(IOS_WEBVIEW_ORIGIN)])).min(1),
+      ),
     AUTH_ENABLED: FeatureFlagSchema,
     CLERK_SECRET_KEY: secret.optional(),
     CLERK_JWT_ISSUER: OriginSchema.optional(),

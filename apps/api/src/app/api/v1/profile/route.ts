@@ -42,7 +42,7 @@ async function handle(request: Request, method: "GET" | "POST" | "PATCH") {
     );
 
   const authorization = request.headers.get("Authorization");
-  const session = await verifyBearerSession(authorization, env);
+  const session = await verifyBearerSession(authorization, env, origin);
   if (!session || !authorization)
     return Response.json({ error: "unauthorized" }, { status: 401, headers });
   if (!env.DATABASE_ENABLED)

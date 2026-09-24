@@ -38,6 +38,7 @@ export async function GET(request: Request) {
   const session = await verifyBearerSession(
     request.headers.get("Authorization"),
     env,
+    origin,
   );
   if (!session)
     return Response.json({ error: "unauthorized" }, { status: 401, headers });

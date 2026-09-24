@@ -2,8 +2,8 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-24 (01.09 closed after Production API verification).  
-**Next actionable task:** 01.10 (integrated platform proof against Local).  
+**Last updated:** 2026-09-25 (01.10 integrated platform proof).  
+**Next actionable task:** after 01.10 merges, the first ready Phase 02 task (02.01 needs KAP fixture rights).  
 **Also ready:** 02.01 (depends only on 00.06). It needs owner-supplied KAP fixture rights before source payloads are committed.  
 **Architecture gates:** A01–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
@@ -17,14 +17,13 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| — | No task is in progress. |
+| 01.10 | in_progress — branch `codex/01.10-integrated-platform-proof`; awaiting owner review and A01–A03 acceptance |
 
 ## Active blockers and prerequisites
 
 | Prerequisite | Blocks | Owner action |
 |---|---|---|
-| Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test rows removed → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
-| Clerk development secret that was once in the client `finpill` Preview scope has been removed from Vercel; its rotation is owner-confirmed only when reported | No task. 01.10 uses the same development instance, so rotate before 01.10 or update Local `.env.local` afterwards | Rotate the Clerk development secret and report it |
+| Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test accounts' eligibility and profile rows removed (the original invited account and the 01.10 second test account) → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
 | KAP fixture source set and usage rights | 02.01 commits of real payloads | Owner selects a permitted source set |
 | KAP/MKK account, endpoint and terms | 03.01 onward | Owner confirms access |
 | Market-data provider and rights | 02.08 decision, 06.01 | Evaluation under 02.08 |
@@ -33,8 +32,9 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 ## Standing exceptions
 
 - **01.02:** the owner waived the unperformed iOS offline check (archived history, 2026-09-23).
-- **01.06:** the browser-issued API path and two-account isolation were not verified. Both move into 01.10, run against Local.
 - **01.07 / BC-19:** OS-verified HTTPS Universal/App Link opening, the final link domain and paid Apple signing are post-MVP. Safe route handling, sign-in return and Back behavior remain 01.10 acceptance.
+- **Local uses the hosted database (2026-09-25):** owner decision; Local may use the hosted Supabase project with user-scoped access only. CI stays on disposable databases. See A03.
+- **01.10 web identity switch (2026-09-25):** the owner waived the live web sign-in-return and account-switch run and the reverse-direction (original → second account) matrix; the second-account matrix, web sign-out and the iOS/Android account switches were run.
 - **Hosted auth deferral (2026-09-24):** 01.10 proves integrated authentication against Local. Hosted Production authentication is the prerequisite listed above, not an unperformed 01.10 check.
 
 ## Task states
@@ -58,7 +58,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 | 01.07 | complete — PR #21 (BC-19 deferral) |
 | 01.08 | complete — PR #8, PR #14 |
 | 01.09 | complete — PR #23; Production API verified in the closeout PR |
-| 01.10 | ready |
+| 01.10 | in_progress |
 
 ### Phases 02–10
 

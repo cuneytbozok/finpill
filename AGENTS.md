@@ -86,7 +86,7 @@ Run lint, typecheck and tests before declaring a code task complete. For documen
   - There are two application/data environments: **Local** (development, automated tests, disposable databases, the Clerk development instance) and **Production** (the single hosted private application: Vercel Production, one hosted Supabase project, and a Clerk live instance once hosted authentication is enabled).
   - "Private pilot" is a usage/release mode of Production, not a separate environment.
   - Vercel **Preview** is a credential-free deployment context, not an application environment. It must never receive Production data-access, identity, provider, KAP, AI or privileged credentials.
-  - Local and CI must never target Production resources or use Production credentials.
+  - CI never targets Production resources or uses Production credentials. Local may use the hosted Supabase project with user-scoped access only (publishable key and development Clerk tokens under RLS), never with the privileged Supabase key (owner decision, 2026-09-25).
   - Production configuration fails closed and never falls back to Local/development services.
   - A hosted Staging environment may be added later only if public release, multiple users, store distribution or operational risk justify it. See [A03](docs/adr/A03-environments-and-releases.md).
 
