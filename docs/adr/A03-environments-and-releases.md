@@ -19,11 +19,11 @@ The 2026-09-22 proposal mirrored an enterprise topology that is unnecessary at t
 2. **Deployment context is not application environment.** Vercel `development`, `preview` and `production` are deployment contexts.
    - Vercel Development maps to `local`, and Vercel Production to `production`.
    - **Preview maps to no application environment.** It is credential-free. It builds and runs with API, authentication, database, privileged, KAP, AI and provider integrations disabled.
-   - It rejects Finpill, provider and data-access credentials, and integrations that would need them. It does not reject ordinary non-secret settings or Vercel system variables.
+   - It rejects Finpill, provider and data-access credentials, and integrations that would need them. It does not reject other server variables, ordinary non-secret settings or Vercel system variables.
    - Isolation between Preview and Production is enforced primarily by the absence of credentials.
 3. **Local/CI isolation.** Tests and CI use only local or generated disposable resources and never accept Production credentials, database URLs or project references.
 4. **Production fails closed.** Missing required Production configuration fails rather than falling back to Local/development services.
-   - Hosted authentication is optional: with `AUTH_ENABLED=false`, Production runs without Clerk.
+   - Hosted authentication is optional: with `AUTH_ENABLED=false`, Production requires no Clerk configuration at all.
    - When authentication is enabled, Production requires live Clerk keys and rejects development/test keys and the development issuer.
 5. **Secret boundaries.** Unchanged from the original proposal:
    - allowlisted build-time public settings
@@ -49,11 +49,11 @@ The 2026-09-22 proposal mirrored an enterprise topology that is unnecessary at t
 
 - **Task 01.09:**
   - two-value environment contract
-  - Preview context with no application environment, verified to reject credentials
-  - Production fail-closed tests, including development-issuer rejection when auth is enabled
+  - Preview context with no application environment, verified to reject Finpill, provider and data-access credentials and credentialed integrations (not other server or Vercel system variables)
+  - Production fail-closed tests: no Clerk configuration required with `AUTH_ENABLED=false`; live keys required and development keys/issuer rejected when auth is enabled
   - proof that Local/CI cannot target Production
   - separate client/API deployments with deployed v1 health and exact-origin CORS
-  - native release profiles with manifest and artifact scans
+  - a native release build path with manifest and artifact scans (profile naming and design are decided in 01.09 and need not mirror environment names)
   - a Vercel scope audit confirming no credentials in Preview
 - **Task 01.10:** integrated Local proof on web, iOS and Android, as defined in the roadmap.
 

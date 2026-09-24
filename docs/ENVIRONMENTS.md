@@ -50,8 +50,8 @@ The code still implements the superseded three-value model:
 
 Task 01.09 replaces this with:
 - `local`/`production` application environments
-- a Preview context that has no application environment and rejects credentials and credential-requiring integrations
-- Production auth required only when enabled, with the development issuer rejected
+- a Preview context that has no application environment and rejects Finpill, provider and data-access credentials and credential-requiring integrations (other server variables and Vercel system variables stay allowed)
+- Production with `AUTH_ENABLED=false` needs no Clerk configuration; with auth enabled it requires live keys and rejects development keys and the development issuer
 - removal of any hard-coded staging identity
 
 Until then, do not configure any Vercel scope with `staging` values or credentials.

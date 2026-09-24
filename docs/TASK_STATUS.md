@@ -3,14 +3,14 @@
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
 **Last updated:** 2026-09-24 (environment/process reconciliation).  
-**Next actionable task:** 01.09, re-planned against the Local + Production environment contract after the reconciliation PR merges. See [01.09 disposition](#task-0109-disposition).  
+**Next actionable task:** 01.09 becomes actionable through normal discovery once the reconciliation PR merges; it is then re-planned against the Local + Production environment contract. See [01.09 disposition](#task-0109-disposition).  
 **Also ready:** 02.01 (depends only on 00.06). It needs owner-supplied KAP fixture rights before source payloads are committed.  
 **Architecture gates:** A01–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
 ## How to update this file
 
 - The implementation PR updates its own row, for example `complete — PR #N`, in the same PR. If that PR is closed without merging, GitHub merge state wins; correct the row in the next PR that touches this file. Do not open a separate closeout PR.
-- States: `pending` (dependencies not met), `ready` (dependencies merged), `in_progress` (a branch/PR is open), `blocked` (a named external input is missing), `complete` (PR merged with its acceptance criteria met or an explicit owner exception recorded below).
+- States: `pending` (dependencies not met), `ready` (dependencies merged), `in_progress` (an implementation session owns an open branch/PR), `blocked` (a named input, decision or prerequisite change is missing), `complete` (PR merged with its acceptance criteria met or an explicit owner exception recorded below).
 - Keep rows to one line. Put evidence in the PR, not here.
 
 ## Active work
@@ -35,7 +35,7 @@ PR #23 stays unchanged until the reconciliation merges. After that, 01.09 contin
 - **Superseded:**
   - Preview → `staging` binding
   - the pinned staging Supabase URL
-  - the `staging` native profile
+  - the `staging` native profile (replacement naming/design is left to 01.09)
   - a client Preview with API/auth enabled and test Clerk keys
   - `APP_ENV=staging` on the API Preview
   - "Preview-to-pilot isolation" acceptance
@@ -79,7 +79,7 @@ PR #23 stays unchanged until the reconciliation merges. After that, 01.09 contin
 | 01.06 | complete — PR #20 (two checks moved to 01.10) |
 | 01.07 | complete — PR #21 (BC-19 deferral) |
 | 01.08 | complete — PR #8, PR #14 |
-| 01.09 | in_progress — PR #23 frozen; re-plan after reconciliation |
+| 01.09 | blocked — re-evaluation required: PR #23 was built on the superseded staging architecture and is frozen; unblocks when PR #24 merges |
 | 01.10 | pending — 01.09 |
 
 ### Phases 02–10
