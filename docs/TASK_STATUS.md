@@ -24,7 +24,6 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 |---|---|---|
 | Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test accounts' eligibility and profile rows removed (the original invited account and the 01.10 second test account) → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
 | MKK production account, endpoint, token flow and terms | 03.01 onward; the 02.01 evidence gaps (TMS 29 filings, 12-quarter history, FR-level corrections) | Owner confirms access |
-| MKK development credential exposed in chat on 2026-09-25 | No task | Rotate it in the MKK portal and report; update `apps/api/.env.local` |
 | Market-data provider and rights | 02.08 decision, 06.01 | Evaluation under 02.08 |
 | AI provider/account | 08.01 | Selection under 08.01 |
 
@@ -34,7 +33,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 - **01.07 / BC-19:** OS-verified HTTPS Universal/App Link opening, the final link domain and paid Apple signing are post-MVP. Safe route handling, sign-in return and Back behavior remain 01.10 acceptance.
 - **Local uses the hosted database (2026-09-25):** owner decision; Local may use the hosted Supabase project with user-scoped access only. CI stays on disposable databases. See A03.
 - **01.10 web identity switch (2026-09-25):** the owner waived the live web sign-in-return and account-switch run and the reverse-direction (original → second account) matrix; the second-account matrix, web sign-out and the iOS/Android account switches were run.
-- **02.01 development-data gaps (2026-09-25):** owner decision to record, not block. The MKK development snapshot (about Mar–Dec 2023) has no TMS 29 filings, no 12-quarter history and no FR-level corrections; these are evidence items for production access and 04.05/04.06, not approximated. See [KAP_FIXTURES.md](KAP_FIXTURES.md).
+- **02.01 development-data gaps (2026-09-25):** owner decision to record, not block. The MKK development snapshot (about Mar–Dec 2023) has no TMS 29 filings, no 12-quarter history and no FR-level corrections; these are evidence items for production access and 04.05/04.06, not approximated. Once production access exists, compare its responses with this catalogue and add examples only where needed. See [KAP_FIXTURES.md](KAP_FIXTURES.md).
 - **Hosted auth deferral (2026-09-24):** 01.10 proves integrated authentication against Local. Hosted Production authentication is the prerequisite listed above, not an unperformed 01.10 check.
 
 ## Task states

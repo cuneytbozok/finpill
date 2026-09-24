@@ -75,7 +75,7 @@ Later tasks must validate against these observations. BC-21 in the [correction r
 **Attachments and removals**
 
 - `downloadAttachment` returns a **Java-serialized `byte[]`**: a 27-byte header (`AC ED 00 05`, `[B`, 4-byte big-endian length) followed by the PDF, under `Content-Type: application/pdf`. The length matched exactly in all four samples. Attachment URLs in details point at another host (`vykapialpha.mkk.com.tr`).
-- `/blockedDisclosures` lists 25 disclosures/attachments removed on request because they contain personal data. This conflicts with an append-only raw store; the handling is an open A05 decision (02.03).
+- `/blockedDisclosures` lists 25 disclosures/attachments removed on request because they contain personal data. Owner decision (2026-09-25): copies acquired before a removal are retained, because they were publicly published; ingestion should still record the blocked status. A05 (02.03) records the concrete handling.
 
 ## Independent checks
 
