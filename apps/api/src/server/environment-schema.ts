@@ -68,13 +68,15 @@ export const ServerEnvironmentSchema = z
       ] as const)
         if (env[key]) issue(key);
     }
-    // The only hosted Supabase project is Production; Local never targets it.
+    // Local may use the hosted project with user-scoped access only; the
+    // privileged key never leaves the hosting provider's secret store.
     if (
       env.APP_ENV === "local" &&
       env.SUPABASE_URL &&
-      isHostedOrigin(env.SUPABASE_URL)
+      isHostedOrigin(env.SUPABASE_URL) &&
+      env.PRIVILEGED_DATA_ENABLED
     )
-      issue("SUPABASE_URL");
+      issue("PRIVILEGED_DATA_ENABLED");
     // Clerk development instances issue from *.clerk.accounts.dev.
     if (
       env.APP_ENV === "production" &&
@@ -180,6 +182,14 @@ export function readServerEnvironment(env: NodeJS.ProcessEnv) {
       parsed.DATABASE_ENABLED ||
       parsed.PRIVILEGED_DATA_ENABLED ||
       parsed.KAP_ENABLED)
+  )
+    throw new Error("Invalid environment configuration: CI");
+  // CI uses disposable local databases only, never the hosted project.
+  if (
+    env.CI &&
+    env.VERCEL !== "1" &&
+    parsed.SUPABASE_URL &&
+    isHostedOrigin(parsed.SUPABASE_URL)
   )
     throw new Error("Invalid environment configuration: CI");
   return parsed;

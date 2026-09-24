@@ -459,3 +459,27 @@ h2 {
     display: none;
   }
 }
+.account-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 24rem;
+  margin-top: 1rem;
+}
+.account-form input {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+.account-form button,
+.state-card button {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text-primary);
+}

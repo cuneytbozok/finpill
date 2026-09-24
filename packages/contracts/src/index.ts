@@ -40,4 +40,9 @@ export type {
   ApiTransport,
   CreateApiTransportOptions,
 } from "./transport";
-export { SessionResponseSchema } from "./auth";
+export {
+  ProfileResponseSchema,
+  ProfileSchema,
+  SessionResponseSchema,
+} from "./auth";
+export type { Profile } from "./auth";

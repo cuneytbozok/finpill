@@ -459,15 +459,29 @@ describe("server configuration", () => {
       ).toThrow("CLERK_JWT_ISSUER");
   });
 
-  it("keeps Local and automated processes away from Production services", () => {
+  it("lets Local use the hosted database only with user-scoped access", () => {
+    const hosted = {
+      ...localServer,
+      DATABASE_ENABLED: "true",
+      SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fake",
+    };
+    expect(readServerEnvironment(hosted).SUPABASE_URL).toBe(
+      "https://project.supabase.co",
+    );
     expect(() =>
       readServerEnvironment({
-        ...localServer,
-        DATABASE_ENABLED: "true",
-        SUPABASE_URL: "https://project.supabase.co",
-        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fake",
+        ...hosted,
+        PRIVILEGED_DATA_ENABLED: "true",
+        SUPABASE_SECRET_KEY: "sb_secret_fake",
       }),
-    ).toThrow("SUPABASE_URL");
+    ).toThrow("PRIVILEGED_DATA_ENABLED");
+    expect(() => readServerEnvironment({ ...hosted, CI: "true" })).toThrow(
+      "CI",
+    );
+  });
+
+  it("keeps automated processes away from Production services", () => {
     const production = {
       CI: "true",
       APP_ENV: "production",
