@@ -1,14 +1,14 @@
 # MVP task status and handoff
 
 **Roadmap:** [MVP_EXECUTION_PLAN.md](MVP_EXECUTION_PLAN.md).  
-**Current task:** 01.05 — Android Clerk SDK adapter, 2026-09-23.
+**Current task:** 01.09 — client/API deployment and native release configuration, 2026-09-24.
 
-**State:** in_review — Android Release invited-account lifecycle acceptance passed; PR review and merge remain. See handoff below.
+**State:** in_progress — local implementation and release builds passed; hosted deployment acceptance remains. See handoff below.
 
 **Application implementation:** Static client routing, responsive shell, theme and UI state primitives; product data features are not implemented.
 
 **Architecture gates:** A01–A12 are not yet accepted; roadmap approval is not validation evidence.  
-**Last updated:** 2026-09-23.
+**Last updated:** 2026-09-24.
 
 ## Status convention
 
@@ -50,7 +50,7 @@ Each task handoff must record task ID, owner/worktree/base commit, deliverables,
 | 01.06 | complete | [PR #20](https://github.com/cuneytbozok/finpill/pull/20) merged as `35b1a12`; its final ledger row was stale. Browser-issued API and two-live-account acceptance remain unverified and do not accept A02/A03. |
 | 01.07 | complete | [PR #21](https://github.com/cuneytbozok/finpill/pull/21) merged as `288db63`; owner accepted the prepared link/navigation work with OS-verified HTTPS app opening deferred post-MVP. Live sign-in return and Back behavior remain 01.10 acceptance. See closeout. |
 | 01.08 | complete | PR #8 and BC-18 [PR #14](https://github.com/cuneytbozok/finpill/pull/14) merged. Web, iOS and Android shell evidence plus interactive iOS acceptance are recorded below. |
-| 01.09 | pending | — |
+| 01.09 | in_progress | Branch `codex/01.09-deployment-foundation` from `c26804d`; local checks passed. Hosted API project and isolation proof remain. See handoff. |
 | 01.10 | pending | — |
 
 ### Phase 02 — Source identity, financial contracts, and recoverable execution
@@ -544,3 +544,12 @@ A03 remains draft. Native origins/application IDs, service ownership, preview/pi
 - Remaining MVP gate: task 01.10 must still verify canonical web and in-app navigation, sign-in return, browser Back, Android Back, trusted route handling, protected API/RLS flow and identity-switch isolation on the applicable platforms. The owner exception moves only OS-level HTTPS app association and final link-domain/signing setup after MVP; it does not waive security or platform integration checks. The roadmap, access register and blueprint correction register record the boundary.
 - Validation for this documentation closeout: verified GitHub merge and final checks, reconciled the canonical ledger, and checked documentation formatting and diff. No application code changed, so code lint/typecheck/tests were not rerun; task implementation evidence remains in the preceding handoff and PR checks.
 - Next session: fetch/prune and select the next roadmap-ready task, 01.09, subject to its access/environment prerequisites. Do not start it in this closeout session.
+
+## Task 01.09 deployment handoff — in progress, 2026-09-24
+
+- Discovery: fetched/pruned `origin`; canonical rows 01.01–01.08 are complete and the 01.07 closeout PR #22 is merged at `c26804d74fdba9c4217129d625dbb39673508a6c`. Task 01.09 is the first roadmap-ready task. The user's `main` checkout remains untouched.
+- Owner: Codex; branch `codex/01.09-deployment-foundation`, worktree `.worktrees/01.09`, base `c26804d` from verified `origin/main`.
+- Implementation: separate API Vercel configuration under `apps/api`; hosted build/environment guards for Vercel Preview versus Production, the registered staging Supabase project and known development Clerk issuer; a native release pipeline that checks deployed API v1 health before baking public settings into static assets; [deployment matrix and acceptance guide](DEPLOYMENT.md). No database migration or architecture gate acceptance.
+- Local evidence: pinned Node 24.21.0/npm 11.19.0 offline install; `npm run check` passed Prettier, zero-warning lint, strict typecheck, 118 tests, static client export and separate API build. `npm run test:environment-build` passed invalid-build/runtime, production liveness and 47-file static scan (localhost bind required sandbox escalation). Auth-disabled `npm run native:sync` passed with 47 matching assets. Unsigned iOS Release simulator build and unsigned Android Release APK build passed with Xcode, JDK 21 and SDK 36. These builds use disabled integrations, so they are build-pipeline evidence only.
+- Hosted state: Chrome shows the existing Finpill client project, Ready production at `finpill.vercel.app` from `c26804d`, with only the two Clerk development settings scoped to all pre-production environments. No Finpill API project exists in the owner's Vercel team. The new-project import currently reads the root client build/output settings because the API-specific config is not yet in a remote branch; do not deploy it with those settings. The Vercel connector itself returns 403 for the team, while the user's authenticated Chrome tab is accessible.
+- Remaining task acceptance: publish and review the task branch; create the separate API project against its own config, set exact staging client/API origins and credentials, confirm both previews and deployed `/api/v1/health`, test allowed/denied CORS and bearer requests, run an API-enabled native profile against that deployed v1 API, and inspect artifacts for server secrets. A separate pilot Supabase project/live Clerk instance are not yet registered, so Preview-to-pilot isolation needs explicit hosted evidence before acceptance. Keep A01–A03 draft and do not select 01.10 yet.

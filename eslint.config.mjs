@@ -11,6 +11,7 @@ export default [
       "**/out/**",
       "**/next-env.d.ts",
       "**/coverage/**",
+      "**/build/**",
       "apps/client/ios/**",
       "apps/client/android/**",
     ],

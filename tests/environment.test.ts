@@ -280,6 +280,68 @@ describe("server configuration", () => {
     ).toThrow("SUPABASE_PUBLISHABLE_KEY");
   });
 
+  it("binds hosted builds to their Vercel deployment environment", () => {
+    expect(
+      readServerEnvironment({
+        VERCEL: "1",
+        VERCEL_ENV: "preview",
+        APP_ENV: "staging",
+        CLIENT_ORIGINS: "https://preview.example.com",
+      }).APP_ENV,
+    ).toBe("staging");
+    for (const [vercelEnv, appEnv] of [
+      ["preview", "production"],
+      ["production", "staging"],
+      ["unknown", "staging"],
+    ]) {
+      expect(() =>
+        readServerEnvironment({
+          VERCEL: "1",
+          VERCEL_ENV: vercelEnv,
+          APP_ENV: appEnv,
+          CLIENT_ORIGINS: "https://app.example.com",
+        }),
+      ).toThrow("APP_ENV");
+    }
+  });
+
+  it("pins staging data and rejects its use in production", () => {
+    const database = {
+      DATABASE_ENABLED: "true",
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fake",
+    };
+    const stagingUrl = "https://gsgkoiwjkqbkuyyafzbf.supabase.co";
+    const staging = {
+      ...database,
+      APP_ENV: "staging",
+      CLIENT_ORIGINS: "https://preview.example.com",
+    };
+    expect(
+      readServerEnvironment({ ...staging, SUPABASE_URL: stagingUrl })
+        .DATABASE_ENABLED,
+    ).toBe(true);
+    expect(() =>
+      readServerEnvironment({
+        ...staging,
+        SUPABASE_URL: "https://other-project.supabase.co",
+      }),
+    ).toThrow("SUPABASE_URL");
+    expect(() =>
+      readServerEnvironment({
+        ...staging,
+        APP_ENV: "production",
+        SUPABASE_URL: stagingUrl,
+      }),
+    ).toThrow("SUPABASE_URL");
+    expect(() =>
+      readServerEnvironment({
+        APP_ENV: "production",
+        CLIENT_ORIGINS: "https://app.example.com",
+        CLERK_JWT_ISSUER: "https://ample-chicken-233.clerk.accounts.dev",
+      }),
+    ).toThrow("CLERK_JWT_ISSUER");
+  });
+
   it("never includes submitted credentials or raw validation details in errors", () => {
     const secret = "canary-do-not-log";
     try {

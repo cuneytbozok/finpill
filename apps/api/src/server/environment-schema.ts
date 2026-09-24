@@ -117,5 +117,36 @@ export const ServerEnvironmentSchema = z
   });
 
 export function readServerEnvironment(env: NodeJS.ProcessEnv) {
-  return parseEnvironment(ServerEnvironmentSchema, env);
+  const parsed = parseEnvironment(ServerEnvironmentSchema, env);
+  if (env.VERCEL === "1") {
+    const expected =
+      env.VERCEL_ENV === "production"
+        ? "production"
+        : env.VERCEL_ENV === "preview"
+          ? "staging"
+          : env.VERCEL_ENV === "development"
+            ? "local"
+            : undefined;
+    if (!expected || parsed.APP_ENV !== expected) {
+      throw new Error("Invalid environment configuration: APP_ENV");
+    }
+  }
+  if (parsed.DATABASE_ENABLED && parsed.SUPABASE_URL) {
+    const stagingProject = "https://gsgkoiwjkqbkuyyafzbf.supabase.co";
+    if (
+      (parsed.APP_ENV === "staging" &&
+        parsed.SUPABASE_URL !== stagingProject) ||
+      (parsed.APP_ENV === "production" &&
+        parsed.SUPABASE_URL === stagingProject)
+    ) {
+      throw new Error("Invalid environment configuration: SUPABASE_URL");
+    }
+  }
+  if (
+    parsed.APP_ENV === "production" &&
+    parsed.CLERK_JWT_ISSUER === "https://ample-chicken-233.clerk.accounts.dev"
+  ) {
+    throw new Error("Invalid environment configuration: CLERK_JWT_ISSUER");
+  }
+  return parsed;
 }
