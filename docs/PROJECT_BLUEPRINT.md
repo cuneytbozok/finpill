@@ -3060,7 +3060,7 @@ Database/domain models should preserve English source labels and avoid Turkish-o
 
 # 44. Environments, Configuration & Deployment
 
-Owner decision 2026-09-24 (BC-20; draft [A03](adr/A03-environments-and-releases.md)). The how-to guide is [ENVIRONMENTS.md](ENVIRONMENTS.md).
+Owner decision 2026-09-24 (BC-20; accepted [A03](adr/A03-environments-and-releases.md)). The how-to guide is [ENVIRONMENTS.md](ENVIRONMENTS.md).
 
 Two application/data environments:
 
