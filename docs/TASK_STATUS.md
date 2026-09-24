@@ -46,7 +46,7 @@ PR #23 stays unchanged until the reconciliation merges. After that, 01.09 contin
 | Prerequisite | Blocks | Owner action |
 |---|---|---|
 | Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test rows removed → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
-| Vercel environment-variable audit: no Finpill, provider or data-access credential in the Preview scope. Reconcile PR #23's `finpill-api` Preview `APP_ENV=staging` and its exact-domain protection exception. | 01.09 acceptance | Owner-approved settings changes during 01.09 |
+| Vercel environment-variable audit: no Finpill, provider or data-access credential in the Preview scope. Reconcile PR #23's `finpill-api` Preview `APP_ENV=staging` and its exact-domain protection exception. Until `apps/api/vercel.json` (from PR #23) is on `main`, `finpill-api` Git deployments fail on every other branch: they fall back to the root client `vercel.json` and run `build:client` inside `apps/api`. This check is not required and does not affect the client project. | 01.09 acceptance | Owner-approved settings changes during 01.09 |
 | KAP fixture source set and usage rights | 02.01 commits of real payloads | Owner selects a permitted source set |
 | KAP/MKK account, endpoint and terms | 03.01 onward | Owner confirms access |
 | Market-data provider and rights | 02.08 decision, 06.01 | Evaluation under 02.08 |
