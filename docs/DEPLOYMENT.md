@@ -69,5 +69,9 @@ cannot access pilot resources. The Vercel connector lacks access to the
 owner's team, but authenticated Chrome can inspect project settings. The
 separate API project is `finpill-api` (`prj_RPrp1YttJigzDOBXIUI3cYGbBjJb`).
 Its Preview currently has only non-secret `APP_ENV` and `CLIENT_ORIGINS`
-configured. Pilot resources and a successful hosted API Preview have not been
-confirmed. Do not mark those hosted checks passed from local builds.
+configured. The task-branch API Preview is Ready, but Vercel Authentication
+redirects unauthenticated health requests to SSO. Its exact Preview domain is
+recorded in the access register. Native/API acceptance remains blocked until
+the owner decides whether that domain should be exempted from Vercel
+Authentication. Pilot resources are also unconfirmed. Do not mark those hosted
+checks passed from local builds or a Ready deployment badge.
