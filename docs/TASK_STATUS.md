@@ -2,8 +2,8 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-24 (environment/process reconciliation).  
-**Next actionable task:** 01.09 becomes actionable through normal discovery once the reconciliation PR merges; it is then re-planned against the Local + Production environment contract. See [01.09 disposition](#task-0109-disposition).  
+**Last updated:** 2026-09-24 (01.09 rework on the Local + Production contract).  
+**Next actionable task:** 01.09 is `in_progress` on [PR #23](https://github.com/cuneytbozok/finpill/pull/23). Its code is complete; deployed acceptance waits on the owner Vercel actions below.  
 **Also ready:** 02.01 (depends only on 00.06). It needs owner-supplied KAP fixture rights before source payloads are committed.  
 **Architecture gates:** A01–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
@@ -17,36 +17,14 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| Environment/process reconciliation | [PR #24](https://github.com/cuneytbozok/finpill/pull/24), open for owner review. |
-| 01.09 — [PR #23](https://github.com/cuneytbozok/finpill/pull/23) | Frozen. It was built under the superseded staging/pilot contract. Do not merge it as-is. |
-
-## Task 01.09 disposition
-
-PR #23 stays unchanged until the reconciliation merges. After that, 01.09 continues from its branch or a fresh branch on the new `main`, whichever is cleaner, against the updated 01.09 acceptance criteria.
-
-- **Likely reusable:**
-  - the separate `finpill-api` Vercel project and `apps/api/vercel.json`
-  - API `/api/v1/health` checks
-  - exact-origin CORS verification
-  - the native release pipeline shape: deployed v1 health check, release manifest, unsigned iOS/Android Release builds and artifact scans
-  - the `build/` lint ignore
-  - Production rejection of the development Clerk issuer when auth is enabled
-  - most of the deployment guide
-- **Superseded:**
-  - Preview → `staging` binding
-  - the pinned staging Supabase URL
-  - the `staging` native profile (replacement naming/design is left to 01.09)
-  - a client Preview with API/auth enabled and test Clerk keys
-  - `APP_ENV=staging` on the API Preview
-  - "Preview-to-pilot isolation" acceptance
-  - any separate staging/pilot Clerk or Supabase topology
+| 01.09 — [PR #23](https://github.com/cuneytbozok/finpill/pull/23) | Reworked after PR #24 merged (the branch merges `main`; no history rewrite). The `local`/`production` contract, Preview credential rejection, Production auth fail-closed rules, CI isolation, the `production` native release profile and artifact scans are implemented, and GitHub CI passes. Both Vercel Preview builds for `6977da7` failed **as designed** on the guarded Preview variables listed below. Deployed health/CORS, the scope audit and a native release run are pending owner action. |
 
 ## Active blockers and prerequisites
 
 | Prerequisite | Blocks | Owner action |
 |---|---|---|
 | Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test rows removed → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
-| Vercel environment-variable audit: no Finpill, provider or data-access credential in the Preview scope. Reconcile PR #23's `finpill-api` Preview `APP_ENV=staging` and its exact-domain protection exception. Until `apps/api/vercel.json` (from PR #23) is on `main`, `finpill-api` Git deployments fail on every other branch: they fall back to the root client `vercel.json` and run `build:client` inside `apps/api`. This check is not required and does not affect the client project. | 01.09 acceptance | Owner-approved settings changes during 01.09 |
+| Vercel Preview scopes are not credential-free. The `6977da7` Preview builds reported client Preview `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `NEXT_PUBLIC_API_ENABLED`, and API Preview `APP_ENV`. A Clerk secret in the client project must also be treated as exposed to that project's builds. Also needed: API Production `APP_ENV=production` plus exact `CLIENT_ORIGINS`; re-evaluate the task-branch Preview domain's Vercel Authentication exception. The Vercel connector and CLI cannot read team-scope settings until the owner authorizes them. | 01.09 acceptance (deployed health/CORS, scope audit) | Remove the listed Preview variables; rotate the Clerk development secret key; set API Production settings. See PR #23. |
 | KAP fixture source set and usage rights | 02.01 commits of real payloads | Owner selects a permitted source set |
 | KAP/MKK account, endpoint and terms | 03.01 onward | Owner confirms access |
 | Market-data provider and rights | 02.08 decision, 06.01 | Evaluation under 02.08 |
@@ -79,7 +57,7 @@ PR #23 stays unchanged until the reconciliation merges. After that, 01.09 contin
 | 01.06 | complete — PR #20 (two checks moved to 01.10) |
 | 01.07 | complete — PR #21 (BC-19 deferral) |
 | 01.08 | complete — PR #8, PR #14 |
-| 01.09 | blocked — re-evaluation required: PR #23 was built on the superseded staging architecture and is frozen; unblocks when PR #24 merges |
+| 01.09 | in_progress — PR #23 (awaiting owner Vercel actions for deployed acceptance) |
 | 01.10 | pending — 01.09 |
 
 ### Phases 02–10
