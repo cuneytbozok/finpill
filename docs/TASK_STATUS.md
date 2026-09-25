@@ -2,9 +2,9 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-25 (01.10 closed; 02.01 evidence pack in review).  
-**Next actionable task:** after 02.01 merges, 02.02 (issuer/security identity) and 02.04 (exact numbers); 02.08 after 02.02.  
-**Architecture gates:** A01–A03 accepted 2026-09-25; A04–A12 are not accepted. A gate blocks only the work its roadmap row names.
+**Last updated:** 2026-09-25 (02.01 merged; 02.02 in review).  
+**Next actionable task:** 02.04 (exact numbers). After 02.02 merges: 02.03 (immutable sources) and 02.08 (market provider).  
+**Architecture gates:** A01–A03 accepted 2026-09-25; A04 proposed in the 02.02 PR (accepted on merge); A05–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
 ## How to update this file
 
@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.01 | in_progress — PR #27, awaiting owner review |
+| 02.02 | in_progress — issuer/security identity and A04, awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -65,4 +65,6 @@ Every task not listed below is `pending` on its roadmap dependencies.
 
 | Task | State |
 |---|---|
-| 02.01 | in_progress — PR #27 (development-data gaps recorded above) |
+| 02.01 | complete — PR #27 (development-data gaps recorded above) |
+| 02.02 | in_progress — A04 proposed |
+| 02.04 | ready |
