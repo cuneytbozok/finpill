@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.03 | in_progress — PR pending, awaiting owner review |
+| 02.03 | in_progress — PR #29, awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -68,6 +68,6 @@ Every task not listed below is `pending` on its roadmap dependencies.
 |---|---|
 | 02.01 | complete — PR #27 (development-data gaps recorded above) |
 | 02.02 | complete — PR #28 (A04 accepted) |
-| 02.03 | in_progress (A05 proposed) |
+| 02.03 | in_progress — PR #29 (A05 proposed) |
 | 02.04 | ready |
 | 02.08 | ready — needs a provider with permitted pilot use |
