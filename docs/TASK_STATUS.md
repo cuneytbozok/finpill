@@ -2,9 +2,9 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-25 (02.04 merged; 02.05 in review).  
-**Next actionable task:** 02.06 (jobs); 02.08 (market provider) is also ready.  
-**Architecture gates:** A01–A03 accepted 2026-09-25; A04 accepted 2026-09-25 (PR #28); A05 accepted 2026-09-25 (PR #29); A06 accepted 2026-09-25 (PR #30); A07 proposed in the 02.05 PR (accepted on merge); A08–A12 are not accepted. A gate blocks only the work its roadmap row names.
+**Last updated:** 2026-09-25 (02.05 merged; 02.06 in review).  
+**Next actionable task:** 02.07 (runner) after 02.06 merges; 02.08 (market provider) is ready but needs a provider with permitted pilot use.  
+**Architecture gates:** A01–A03 accepted 2026-09-25; A04 accepted 2026-09-25 (PR #28); A05 accepted 2026-09-25 (PR #29); A06 accepted 2026-09-25 (PR #30); A07 accepted 2026-09-25 (PR #31); A08 proposed in the 02.06 PR (queue contract accepted on merge; rate budgets and runner completed by 02.07); A09–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
 ## How to update this file
 
@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.05 | in_progress — awaiting owner review |
+| 02.06 | in_progress — awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -71,6 +71,6 @@ Every task not listed below is `pending` on its roadmap dependencies.
 | 02.02 | complete — PR #28 (A04 accepted) |
 | 02.03 | complete — PR #29 (A05 accepted) |
 | 02.04 | complete — PR #30 (A06 accepted) |
-| 02.05 | in_progress (A07 proposed) |
-| 02.06 | ready |
+| 02.05 | complete — PR #31 (A07 accepted) |
+| 02.06 | in_progress (A08 proposed) |
 | 02.08 | ready — needs a provider with permitted pilot use |

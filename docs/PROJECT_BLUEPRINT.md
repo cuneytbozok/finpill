@@ -586,6 +586,7 @@ The table lists in §12.1–12.19 are the original illustrative sketch, **not an
 - **Recoverable execution (BC-09, A08):**
   - Jobs support atomic claiming, leases with fencing, retries with recorded failures, transactional checkpoints, source-wide rate budgets and version-aware idempotency keys.
   - Execution is at-least-once, so handlers must be idempotent.
+  - Concrete queue tables, idempotency-key format, claim/lease/fencing functions, retry backoff, checkpoints and attempt history: [A08](adr/A08-jobs-and-recovery.md) (task 02.06). Rate budgets and the runner are completed by 02.07.
 - **Market data (BC-11, A10):**
   - Historical share counts and corporate actions carry provenance.
   - Valuations join financials and prices as of their publication/availability time, never with look-ahead.
@@ -978,7 +979,7 @@ financial_report_parse:1230809:parser_v1
 analysis_snapshot:1619:2026-06-30:analysis_v1
 ```
 
-This prevents duplicate cron runs or retries from repeating expensive work or AI calls. Claims, leases, fencing and checkpoint rules (§12.0) make at-least-once execution safe.
+This prevents duplicate cron runs or retries from repeating expensive work or AI calls. Claims, leases, fencing and checkpoint rules (§12.0) make at-least-once execution safe. The implemented schema (`processing_jobs`, `processing_job_attempts`) and its functions are specified in [A08](adr/A08-jobs-and-recovery.md); keys end in a `<name>_v<n>` version segment.
 
 ---
 
