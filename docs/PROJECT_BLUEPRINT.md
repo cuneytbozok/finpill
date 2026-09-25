@@ -565,6 +565,7 @@ The table lists in §12.1–12.19 are the original illustrative sketch, **not an
   - Issuers (KAP members) and tradable securities are distinct entities with stable internal IDs.
   - Tickers, ISINs and KAP identifiers are effective-dated mappings, not primary keys.
   - Prices and share counts attach to securities.
+  - Concrete tables, constraint semantics and resolution rules: [A04](adr/A04-issuer-security-identity.md) (task 02.02). An exchange code can name several share classes of one issuer, so ticker → issuer resolves but ticker → security can be ambiguous and is never guessed.
 - **Immutable sources (BC-05, A05):**
   - A logical disclosure is separate from its source revisions and acquisition observations.
   - Each exact payload representation/subreport is stored immutably with hashes.
