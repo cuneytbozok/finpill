@@ -20,19 +20,19 @@ do $do$ begin perform extensions.dblink_connect(
     host(inet_server_addr()), inet_server_port(), current_database())
 ); end $do$;
 
-do $do$ begin perform extensions.dblink_exec('writer_a', $$
-  select public.record_source_payload(h, 1)
-  from unnest(array[repeat('1', 64), repeat('2', 64), repeat('3', 64)]) h
-$$); end $do$;
+do $do$ begin perform extensions.dblink_exec('writer_a', $$ do $r$ begin
+  perform public.record_source_payload(h, 1)
+  from unnest(array[repeat('1', 64), repeat('2', 64), repeat('3', 64)]) h;
+end $r$ $$); end $do$;
 
 -- 1. Two writers acquire the same new body of an unseen document at the same time.
 do $do$ begin perform extensions.dblink_exec('writer_a', 'begin'); end $do$;
-do $do$ begin perform extensions.dblink_exec('writer_a', $$
-  select * from public.record_source_acquisition(
+do $do$ begin perform extensions.dblink_exec('writer_a', $$ do $r$ begin
+  perform * from public.record_source_acquisition(
     'kap_vyk', 'disclosure_detail', '7000001', 'data', 'all',
     '/disclosureDetail/7000001?fileType=data', '2026-09-25 10:00:00+00', '2026-09-25 10:00:01+00',
-    200, 'application/json', repeat('1', 64))
-$$); end $do$;
+    200, 'application/json', repeat('1', 64));
+end $r$ $$); end $do$;
 do $do$ begin perform extensions.dblink_send_query('writer_b', $$
   select outcome, revision_number from public.record_source_acquisition(
     'kap_vyk', 'disclosure_detail', '7000001', 'data', 'all',
@@ -55,12 +55,12 @@ select is_empty(
 
 -- 2. Two writers acquire different changed bodies of the same document at the same time.
 do $do$ begin perform extensions.dblink_exec('writer_a', 'begin'); end $do$;
-do $do$ begin perform extensions.dblink_exec('writer_a', $$
-  select * from public.record_source_acquisition(
+do $do$ begin perform extensions.dblink_exec('writer_a', $$ do $r$ begin
+  perform * from public.record_source_acquisition(
     'kap_vyk', 'disclosure_detail', '7000001', 'data', 'all',
     '/disclosureDetail/7000001?fileType=data', '2026-09-26 10:00:00+00', '2026-09-26 10:00:01+00',
-    200, 'application/json', repeat('2', 64))
-$$); end $do$;
+    200, 'application/json', repeat('2', 64));
+end $r$ $$); end $do$;
 do $do$ begin perform extensions.dblink_send_query('writer_b', $$
   select outcome, revision_number from public.record_source_acquisition(
     'kap_vyk', 'disclosure_detail', '7000001', 'data', 'all',
@@ -83,12 +83,12 @@ select is_empty(
 
 -- 3. A writer that fails mid-transaction leaves nothing behind; a retry succeeds.
 do $do$ begin perform extensions.dblink_exec('writer_a', 'begin'); end $do$;
-do $do$ begin perform extensions.dblink_exec('writer_a', $$
-  select * from public.record_source_acquisition(
+do $do$ begin perform extensions.dblink_exec('writer_a', $$ do $r$ begin
+  perform * from public.record_source_acquisition(
     'kap_vyk', 'disclosure_detail', '7000002', 'data', 'all',
     '/disclosureDetail/7000002?fileType=data', '2026-09-25 10:00:00+00', '2026-09-25 10:00:01+00',
-    200, 'application/json', repeat('1', 64))
-$$); end $do$;
+    200, 'application/json', repeat('1', 64));
+end $r$ $$); end $do$;
 do $do$ begin perform extensions.dblink_exec('writer_a', 'rollback'); end $do$;
 
 select results_eq(

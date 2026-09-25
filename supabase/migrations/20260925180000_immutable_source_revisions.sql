@@ -30,7 +30,9 @@ create table public.source_documents (
   )),
   -- Canonical request key: the resource id, the name-sorted query string of a list
   -- request, or 'all' for a resource without parameters.
-  external_key text not null check (external_key ~ '^[A-Za-z0-9_.,:=&-]{1,256}$'),
+  external_key text not null check (
+    char_length(external_key) between 1 and 256 and external_key ~ '^[A-Za-z0-9_.,:=&-]+$'
+  ),
   -- Source representation as requested (e.g. fileType 'data', 'html', 'pdf'), or
   -- 'json'/'file' for resources that have one.
   representation text not null check (representation ~ '^[a-z][a-z0-9_]{0,31}$'),
@@ -65,7 +67,9 @@ create table public.source_acquisitions (
   id bigint generated always as identity primary key,
   document_id uuid not null references public.source_documents (id),
   -- Path and query relative to the source base URL. Never a host or credentials.
-  request_path text not null check (request_path ~ '^/[A-Za-z0-9_.,:=&?/%+-]{0,1023}$'),
+  request_path text not null check (
+    char_length(request_path) <= 1024 and request_path ~ '^/[A-Za-z0-9_.,:=&?/%+-]*$'
+  ),
   requested_at timestamptz not null,
   received_at timestamptz not null,
   http_status integer not null check (http_status between 100 and 599),
