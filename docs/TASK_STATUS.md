@@ -2,9 +2,9 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-25 (02.03 merged; 02.04 in review).  
-**Next actionable task:** 02.06 (jobs); 02.08 (market provider) is also ready. After 02.04 merges: 02.05 (financial identity).  
-**Architecture gates:** A01–A03 accepted 2026-09-25; A04 accepted 2026-09-25 (PR #28); A05 accepted 2026-09-25 (PR #29); A06 proposed in the 02.04 PR (accepted on merge); A07–A12 are not accepted. A gate blocks only the work its roadmap row names.
+**Last updated:** 2026-09-25 (02.04 merged; 02.05 in review).  
+**Next actionable task:** 02.06 (jobs); 02.08 (market provider) is also ready.  
+**Architecture gates:** A01–A03 accepted 2026-09-25; A04 accepted 2026-09-25 (PR #28); A05 accepted 2026-09-25 (PR #29); A06 accepted 2026-09-25 (PR #30); A07 proposed in the 02.05 PR (accepted on merge); A08–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
 ## How to update this file
 
@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.04 | in_progress — awaiting owner review |
+| 02.05 | in_progress — awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -70,6 +70,7 @@ Every task not listed below is `pending` on its roadmap dependencies.
 | 02.01 | complete — PR #27 (development-data gaps recorded above) |
 | 02.02 | complete — PR #28 (A04 accepted) |
 | 02.03 | complete — PR #29 (A05 accepted) |
-| 02.04 | in_progress (A06 proposed) |
+| 02.04 | complete — PR #30 (A06 accepted) |
+| 02.05 | in_progress (A07 proposed) |
 | 02.06 | ready |
 | 02.08 | ready — needs a provider with permitted pilot use |

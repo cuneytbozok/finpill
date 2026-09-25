@@ -546,7 +546,7 @@ Q4 standalone = FY cumulative - 9M cumulative
 
 All calculated standalone periods must store calculation lineage.
 
-Derive a standalone quarter only from **compatible** inputs. Compatible means the same issuer and reporting scope (consolidated/standalone), fiscal year, accounting and TMS 29 basis, and a selected filing/restatement version valid as of the calculation date. Incompatible or missing inputs produce an explicit "unavailable" result with a reason; they are never guessed. The concrete compatibility and selection rules are owned by A07/A09 and roadmap tasks 02.05 and 05.02.
+Derive a standalone quarter only from **compatible** inputs. Compatible means the same issuer and reporting scope (consolidated/standalone), fiscal year, accounting and TMS 29 basis, and a selected filing/restatement version valid as of the calculation date. Incompatible or missing inputs produce an explicit "unavailable" result with a reason; they are never guessed. The concrete compatibility and selection rules are in [A07](adr/A07-financial-identity-and-compatibility.md) (task 02.05); metric-specific applicability belongs to A09 and the arithmetic to 05.02.
 
 ---
 
@@ -576,6 +576,7 @@ The table lists in §12.1–12.19 are the original illustrative sketch, **not an
   - Comparative restatements are selectable by policy and as-of date.
   - Replacements are published atomically through current-version pointers.
   - Partially processed builds are never published.
+  - Concrete fact identity (dates from `Period`, temporal role from `preferredLabel`, dimensions from value measures), fiscal coverage, knowledge time, compatibility order, TMS 29 basis rules, quarter/TTM strategies, selection policies and build states: [A07](adr/A07-financial-identity-and-compatibility.md) (task 02.05).
 - **Exact numbers (BC-08, A06):**
   - Source numbers are parsed losslessly and stored as PostgreSQL `numeric`.
   - Calculations use a decimal library.
@@ -1175,7 +1176,7 @@ All valuation methodology must be versioned.
 
 # 18. Restatements / TMS 29
 
-Financial statements may be restated. Comparisons across different accounting, TMS 29 or restatement bases are rejected unless an approved compatibility rule exists. The system never silently adjusts or mixes bases (see §11 and A07).
+Financial statements may be restated. Comparisons across different accounting, TMS 29 or restatement bases are rejected unless an approved compatibility rule exists. The system never silently adjusts or mixes bases (see §11 and [A07](adr/A07-financial-identity-and-compatibility.md): a TMS 29 value carries its measuring-unit date and combines only with values in the same measuring unit; a basis without evidence is `unknown` and combines with nothing).
 
 The system must distinguish:
 
