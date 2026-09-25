@@ -46,3 +46,38 @@ export {
   SessionResponseSchema,
 } from "./auth";
 export type { Profile } from "./auth";
+export {
+  DECIMAL_LIMITS,
+  DecimalError,
+  DecimalStringSchema,
+  abs,
+  add,
+  compare,
+  divide,
+  isDecimalString,
+  multiply,
+  negate,
+  parseDecimal,
+  round,
+  roundScaled,
+  sign,
+  subtract,
+  toChartNumber,
+} from "./decimal";
+export type { DecimalErrorCode, DecimalString, RoundingMode } from "./decimal";
+export {
+  NumericUnitSchema,
+  NumericValueSchema,
+  UnavailableNumericStatusSchema,
+} from "./numeric";
+export type { NumericUnit, NumericValue } from "./numeric";
+export {
+  formatCompact,
+  formatCompactCurrency,
+  formatCurrency,
+  formatDecimal,
+  formatInteger,
+  formatMultiple,
+  formatPercent,
+} from "./format";
+export type { FormatOptions, NumberLocale } from "./format";
