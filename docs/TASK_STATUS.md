@@ -24,11 +24,12 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 |---|---|---|
 | Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test accounts' eligibility and profile rows removed (the original invited account and the 01.10 second test account) → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
 | MKK production account, endpoint, token flow and terms | 03.01 onward; the 02.01 evidence gaps (TMS 29 filings, 12-quarter history, FR-level corrections) | Owner confirms access |
-| Production `source-payloads` private Storage bucket (settings in A05) | First Production KAP acquisition (03.03/03.04). Not Local or CI. | Owner creates it or approves its creation before Production ingestion |
 | Market-data provider and rights | 02.08 decision, 06.01 | Evaluation under 02.08 |
 | AI provider/account | 08.01 | Selection under 08.01 |
 
 ## Standing exceptions
+
+- **Production `source-payloads` bucket (2026-09-25):** created by the owner in the hosted project (private, 50 MiB, `application/octet-stream`), matching A05; no further action before Production ingestion.
 
 - **01.02:** the owner waived the unperformed iOS offline check (archived history, 2026-09-23).
 - **01.07 / BC-19:** OS-verified HTTPS Universal/App Link opening, the final link domain and paid Apple signing are post-MVP. Safe route handling, sign-in return and Back behavior remain 01.10 acceptance.
