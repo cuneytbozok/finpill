@@ -34,3 +34,10 @@ enabled = false
 [auth.third_party.clerk]
 enabled = true
 domain = "ample-chicken-233.clerk.accounts.dev"
+
+# Exact source bodies (A05). Private; written and read only with machine authority
+# under content-addressed keys. Production creates the same bucket (see A05).
+[storage.buckets.source-payloads]
+public = false
+file_size_limit = "50MiB"
+allowed_mime_types = ["application/octet-stream"]

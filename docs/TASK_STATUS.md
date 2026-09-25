@@ -2,9 +2,9 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-25 (02.01 merged; 02.02 in review).  
-**Next actionable task:** 02.04 (exact numbers). After 02.02 merges: 02.03 (immutable sources) and 02.08 (market provider).  
-**Architecture gates:** A01–A03 accepted 2026-09-25; A04 proposed in the 02.02 PR (accepted on merge); A05–A12 are not accepted. A gate blocks only the work its roadmap row names.
+**Last updated:** 2026-09-25 (02.02 merged; 02.03 in review).  
+**Next actionable task:** 02.04 (exact numbers); 02.08 (market provider) is also ready. After 02.03 merges: 02.06 (jobs).  
+**Architecture gates:** A01–A03 accepted 2026-09-25; A04 accepted 2026-09-25 (PR #28); A05 proposed in the 02.03 PR (accepted on merge); A06–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
 ## How to update this file
 
@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.02 | in_progress — PR #28, awaiting owner review |
+| 02.03 | in_progress — PR pending, awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -24,6 +24,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 |---|---|---|
 | Hosted Production authentication: owned domain → Clerk live instance → hosted Supabase third-party trust switched to the live issuer → development-issuer trust and development test accounts' eligibility and profile rows removed (the original invited account and the 01.10 second test account) → `SUPABASE_SECRET_KEY` rotated (it was once present in the client Vercel project) | 10.07 and any earlier task that needs hosted signed-in use. It does **not** block 01.09, 01.10 or Local development. | Deferred by owner decision on 2026-09-24. Each step is an owner-approved Production or account change. |
 | MKK production account, endpoint, token flow and terms | 03.01 onward; the 02.01 evidence gaps (TMS 29 filings, 12-quarter history, FR-level corrections) | Owner confirms access |
+| Production `source-payloads` private Storage bucket (settings in A05) | First Production KAP acquisition (03.03/03.04). Not Local or CI. | Owner creates it or approves its creation before Production ingestion |
 | Market-data provider and rights | 02.08 decision, 06.01 | Evaluation under 02.08 |
 | AI provider/account | 08.01 | Selection under 08.01 |
 
@@ -66,5 +67,7 @@ Every task not listed below is `pending` on its roadmap dependencies.
 | Task | State |
 |---|---|
 | 02.01 | complete — PR #27 (development-data gaps recorded above) |
-| 02.02 | in_progress — PR #28 (A04 proposed) |
+| 02.02 | complete — PR #28 (A04 accepted) |
+| 02.03 | in_progress (A05 proposed) |
 | 02.04 | ready |
+| 02.08 | ready — needs a provider with permitted pilot use |
