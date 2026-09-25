@@ -2,9 +2,9 @@
 
 Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The roadmap owns task scope, order, dependencies and acceptance criteria. GitHub owns merge state, implementation history and detailed evidence (PR descriptions, checks and review). This file records only current state, active blockers and exceptions that change future work. Pre-2026-09-24 handoffs are archived, non-canonically, in [archive/TASK_HISTORY.md](archive/TASK_HISTORY.md).
 
-**Last updated:** 2026-09-25 (02.01 merged; 02.02 in review).  
-**Next actionable task:** 02.04 (exact numbers). After 02.02 merges: 02.03 (immutable sources) and 02.08 (market provider).  
-**Architecture gates:** A01–A03 accepted 2026-09-25; A04 proposed in the 02.02 PR (accepted on merge); A05–A12 are not accepted. A gate blocks only the work its roadmap row names.
+**Last updated:** 2026-09-25 (02.02 merged; 02.03 in review).  
+**Next actionable task:** 02.04 (exact numbers); 02.08 (market provider) is also ready. After 02.03 merges: 02.06 (jobs).  
+**Architecture gates:** A01–A03 accepted 2026-09-25; A04 accepted 2026-09-25 (PR #28); A05 proposed in the 02.03 PR (accepted on merge); A06–A12 are not accepted. A gate blocks only the work its roadmap row names.
 
 ## How to update this file
 
@@ -16,7 +16,7 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 
 | Item | State |
 |---|---|
-| 02.02 | in_progress — PR #28, awaiting owner review |
+| 02.03 | in_progress — PR #29, awaiting owner review |
 
 ## Active blockers and prerequisites
 
@@ -28,6 +28,8 @@ Compact execution state for the [MVP execution plan](MVP_EXECUTION_PLAN.md). The
 | AI provider/account | 08.01 | Selection under 08.01 |
 
 ## Standing exceptions
+
+- **Production `source-payloads` bucket (2026-09-25):** created by the owner in the hosted project (private, 50 MiB, `application/octet-stream`), matching A05; no further action before Production ingestion.
 
 - **01.02:** the owner waived the unperformed iOS offline check (archived history, 2026-09-23).
 - **01.07 / BC-19:** OS-verified HTTPS Universal/App Link opening, the final link domain and paid Apple signing are post-MVP. Safe route handling, sign-in return and Back behavior remain 01.10 acceptance.
@@ -66,5 +68,7 @@ Every task not listed below is `pending` on its roadmap dependencies.
 | Task | State |
 |---|---|
 | 02.01 | complete — PR #27 (development-data gaps recorded above) |
-| 02.02 | in_progress — PR #28 (A04 proposed) |
+| 02.02 | complete — PR #28 (A04 accepted) |
+| 02.03 | in_progress — PR #29 (A05 proposed) |
 | 02.04 | ready |
+| 02.08 | ready — needs a provider with permitted pilot use |

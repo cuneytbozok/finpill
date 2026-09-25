@@ -570,6 +570,7 @@ The table lists in §12.1–12.19 are the original illustrative sketch, **not an
   - A logical disclosure is separate from its source revisions and acquisition observations.
   - Each exact payload representation/subreport is stored immutably with hashes.
   - Nothing overwrites a prior revision.
+  - Concrete tables, storage keys, revision and concurrency rules: [A05](adr/A05-immutable-source-revisions.md) (task 02.03). Exact bodies live in a private, content-addressed Storage bucket; representations and subreport scopes are separate documents.
 - **Financial identity and publication (BC-06, A05/A07):**
   - Facts carry explicit context, reporting scope, source revision and parser-build identity.
   - Comparative restatements are selectable by policy and as-of date.
