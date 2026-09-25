@@ -10,7 +10,7 @@ Task 00.03 establishes the build and verification structure. It does not accept 
 | `apps/api` / `@finpill/api` | Next.js Node.js API and server-only modules | `apps/api/.next/` |
 | `packages/contracts` / `@finpill/contracts` | Platform-neutral schemas and DTOs | TypeScript source consumed by each app |
 
-Both apps transpile the shared contracts package directly. No separate package publish/build step or extra build orchestrator is required. Contracts exclude Node ambient types and use standard web types for URL validation; runtime DTO validation uses Zod. Do not export database rows, credentials, provider clients or financial-domain implementations from this package. It also holds the shared exact-number primitives and number formatters (A06), which both apps need.
+Both apps transpile the shared contracts package directly. No separate package publish/build step or extra build orchestrator is required. Contracts exclude Node ambient types and use standard web types for URL validation; runtime DTO validation uses Zod. Do not export database rows, credentials, provider clients or financial-domain implementations from this package. It also holds the shared exact-number primitives and number formatters (A06), which both apps need, and the financial period, scope, basis and unavailability schemas (A07). The A07 identity, compatibility and selection rules themselves live in `apps/api/src/server/financial/`.
 
 The only endpoint is `GET /api/v1/health`, returning `{"status":"ok","apiVersion":"v1"}` with `Cache-Control: no-store`. It reports process liveness only. It does not claim database/provider readiness and contains no user data. The client does not call this endpoint yet.
 
