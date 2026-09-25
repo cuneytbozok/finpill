@@ -581,6 +581,7 @@ The table lists in §12.1–12.19 are the original illustrative sketch, **not an
   - Calculations use a decimal library.
   - Authoritative amounts cross transport boundaries as decimal strings.
   - Rounding happens only in presentation. Chart-only approximations are labeled as such.
+  - Concrete limits, rounding modes, the `exact_decimal` storage domain, lossless JSON parsing and the formatting policy: [A06](adr/A06-exact-numbers.md) (task 02.04).
 - **Recoverable execution (BC-09, A08):**
   - Jobs support atomic claiming, leases with fencing, retries with recorded failures, transactional checkpoints, source-wide rate budgets and version-aware idempotency keys.
   - Execution is at-least-once, so handlers must be idempotent.
@@ -732,7 +733,7 @@ source_disclosure_index
 created_at
 ```
 
-Recommended monetary database type: `numeric(38, 6)`.
+Monetary database type: the `exact_decimal` domain (unconstrained `numeric`, 30 integer and 18 fraction digits), not `numeric(38, 6)`; see [A06](adr/A06-exact-numbers.md).
 
 Indexes:
 
@@ -2939,7 +2940,7 @@ Coding agents follow [AGENTS.md](../AGENTS.md), which must preserve these invari
 23. Transport authoritative amounts as decimal strings; never as JSON numbers.
 ```
 
-`decimal.js` is the intended decimal library (A06); its use is finalized in roadmap task 02.04.
+`decimal.js` is the decimal library; exact-number rules are in [A06](adr/A06-exact-numbers.md).
 
 ---
 
